@@ -19,6 +19,7 @@
 
 # production
 /build
+/oldFile/
 
 # misc
 .DS_Store

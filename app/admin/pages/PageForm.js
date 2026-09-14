@@ -491,6 +491,10 @@ export default function PageForm({
   const isTour =
     pageTypeSlug === "tour";
 
+  const isBlog =
+    pageTypeSlug === "blog";
+  
+
   /*
   ========================================================
   EXPERIENCE PAGE
