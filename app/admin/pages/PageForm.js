@@ -1,0 +1,3272 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+/*
+=========================================================
+PAGE FORM
+File:
+app/admin/pages/PageForm.js
+
+Latest version:
+- Dynamic PageType ObjectId
+- Dynamic Region ObjectId
+- Fixed pricing
+- PAX-based pricing
+- Trek details
+- Tour details
+- Itinerary
+- Inclusions
+- Exclusions
+- Important information
+- SEO
+- Publishing
+=========================================================
+*/
+
+export default function PageForm({
+  initialData = {},
+  onSubmit,
+  loading = false,
+}) {
+  /*
+  ========================================================
+  HELPERS
+  ========================================================
+  */
+
+ 
+
+  function getId(value) {
+    if (!value) return "";
+
+    if (typeof value === "object" && value._id) {
+      return String(value._id);
+    }
+
+    return String(value);
+  }
+
+  /*
+  ========================================================
+  INITIAL FORM DATA
+  ========================================================
+  */
+
+  const [formData, setFormData] = useState({
+    /*
+    ======================================================
+    BASIC INFORMATION
+    ======================================================
+    */
+
+    title: initialData.title || "",
+
+    slug: initialData.slug || "",
+
+    pageType: getId(initialData.pageType),
+
+    region: getId(initialData.region),
+
+    description: initialData.description || "",
+
+    content: initialData.content || "",
+
+    imageUrl: initialData.imageUrl || "",
+
+    /*
+    ======================================================
+    PRICE
+    ======================================================
+    */
+
+    price: {
+      currency:
+        initialData.price?.currency || "USD",
+
+      pricingType:
+        initialData.price?.pricingType || "fixed",
+
+      amount:
+        initialData.price?.amount ?? "",
+
+      paxPrices:
+        Array.isArray(initialData.price?.paxPrices)
+          ? initialData.price.paxPrices.map((item) => ({
+              minPax: item.minPax ?? "",
+              maxPax: item.maxPax ?? "",
+              pricePerPax:
+                item.pricePerPax ?? "",
+            }))
+          : [],
+    },
+
+    /*
+    ======================================================
+    TREK DETAILS
+    ======================================================
+    */
+
+    trekDetails: {
+      duration:
+        initialData.trekDetails?.duration || "",
+
+      maxAltitude:
+        initialData.trekDetails?.maxAltitude || "",
+
+      difficulty:
+        initialData.trekDetails?.difficulty || "",
+
+      bestSeason:
+        initialData.trekDetails?.bestSeason || "",
+
+      startingPoint:
+        initialData.trekDetails?.startingPoint || "",
+
+      endingPoint:
+        initialData.trekDetails?.endingPoint || "",
+
+      accommodation:
+        initialData.trekDetails?.accommodation || "",
+
+      meals:
+        initialData.trekDetails?.meals || "",
+
+      groupSize:
+        initialData.trekDetails?.groupSize || "",
+
+      permits:
+        initialData.trekDetails?.permits || "",
+
+      transportation:
+        initialData.trekDetails?.transportation || "",
+
+      guide:
+        initialData.trekDetails?.guide || "",
+    },
+
+    /*
+    ======================================================
+    TOUR DETAILS
+    ======================================================
+    */
+
+    tourDetails: {
+      duration:
+        initialData.tourDetails?.duration || "",
+
+      tourType:
+        initialData.tourDetails?.tourType || "",
+
+      destination:
+        initialData.tourDetails?.destination || "",
+
+      bestSeason:
+        initialData.tourDetails?.bestSeason || "",
+
+      groupSize:
+        initialData.tourDetails?.groupSize || "",
+
+      accommodation:
+        initialData.tourDetails?.accommodation || "",
+
+      transportation:
+        initialData.tourDetails?.transportation || "",
+    },
+
+    /*
+    ======================================================
+    ITINERARY
+    ======================================================
+    */
+
+    itinerary:
+      Array.isArray(initialData.itinerary)
+        ? initialData.itinerary.map(
+            (item, index) => ({
+              day:
+                item.day ??
+                index + 1,
+
+              title:
+                item.title || "",
+
+              description:
+                item.description || "",
+
+              accommodation:
+                item.accommodation || "",
+
+              meal:
+                item.meal || "",
+
+              altitude:
+                item.altitude || "",
+
+              walkingHours:
+                item.walkingHours ?? "",
+            })
+          )
+        : [],
+
+    /*
+    ======================================================
+    INCLUSIONS
+    ======================================================
+    */
+
+    inclusions:
+      Array.isArray(initialData.inclusions)
+        ? initialData.inclusions
+        : [],
+
+    /*
+    ======================================================
+    EXCLUSIONS
+    ======================================================
+    */
+
+    exclusions:
+      Array.isArray(initialData.exclusions)
+        ? initialData.exclusions
+        : [],
+
+    /*
+    ======================================================
+    IMPORTANT INFORMATION
+    ======================================================
+    */
+
+    importantInformation:
+      initialData.importantInformation || "",
+
+    /*
+    ======================================================
+    PUBLISHING
+    ======================================================
+    */
+
+    published:
+      initialData.published ?? false,
+
+    order:
+      initialData.order ?? 0,
+
+    /*
+    ======================================================
+    SEO
+    ======================================================
+    */
+
+    seo: {
+      metaTitle:
+        initialData.seo?.metaTitle || "",
+
+      metaDescription:
+        initialData.seo?.metaDescription || "",
+
+      keywords:
+        Array.isArray(initialData.seo?.keywords)
+          ? initialData.seo.keywords
+          : [],
+
+      ogTitle:
+        initialData.seo?.ogTitle || "",
+
+      ogDescription:
+        initialData.seo?.ogDescription || "",
+
+      ogImage:
+        initialData.seo?.ogImage || "",
+
+      canonicalUrl:
+        initialData.seo?.canonicalUrl || "",
+
+      noIndex:
+        initialData.seo?.noIndex ?? false,
+    },
+  });
+
+  /*
+  ========================================================
+  PAGE TYPES
+  ========================================================
+  */
+
+  const [pageTypes, setPageTypes] = useState([]);
+
+  const [loadingPageTypes, setLoadingPageTypes] =
+    useState(true);
+
+  const [pageTypeError, setPageTypeError] =
+    useState("");
+
+  /*
+  ========================================================
+  REGIONS
+  ========================================================
+  */
+
+  const [regions, setRegions] = useState([]);
+
+  const [loadingRegions, setLoadingRegions] =
+    useState(true);
+
+  const [regionError, setRegionError] =
+    useState("");
+
+  /*
+  ========================================================
+  FORM ERROR
+  ========================================================
+  */
+
+  const [formError, setFormError] =
+    useState("");
+
+  /*
+  ========================================================
+  LOAD PAGE TYPES
+  ========================================================
+  */
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadPageTypes() {
+      try {
+        setLoadingPageTypes(true);
+        setPageTypeError("");
+
+        const response = await fetch(
+          "/api/page-types",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        const result =
+          await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message ||
+              "Failed to load page types."
+          );
+        }
+
+        if (mounted) {
+          setPageTypes(
+            Array.isArray(result.data)
+              ? result.data
+              : []
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load page types:",
+          error
+        );
+
+        if (mounted) {
+          setPageTypeError(
+            error.message ||
+              "Failed to load page types."
+          );
+        }
+      } finally {
+        if (mounted) {
+          setLoadingPageTypes(false);
+        }
+      }
+    }
+
+    loadPageTypes();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  /*
+  ========================================================
+  LOAD REGIONS
+  ========================================================
+  */
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadRegions() {
+      try {
+        setLoadingRegions(true);
+        setRegionError("");
+
+        const response = await fetch(
+          "/api/regions",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        const result =
+          await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message ||
+              "Failed to load regions."
+          );
+        }
+
+        if (mounted) {
+          setRegions(
+            Array.isArray(result.data)
+              ? result.data
+              : []
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load regions:",
+          error
+        );
+
+        if (mounted) {
+          setRegionError(
+            error.message ||
+              "Failed to load regions."
+          );
+        }
+      } finally {
+        if (mounted) {
+          setLoadingRegions(false);
+        }
+      }
+    }
+
+    loadRegions();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  /*
+  ========================================================
+  SELECTED PAGE TYPE
+  ========================================================
+  */
+
+  const selectedPageType = useMemo(() => {
+    return pageTypes.find(
+      (type) =>
+        String(type._id) ===
+        String(formData.pageType)
+    );
+  }, [pageTypes, formData.pageType]);
+
+  /*
+  ========================================================
+  PAGE TYPE SLUG
+  ========================================================
+  */
+
+  const pageTypeSlug =
+    selectedPageType?.slug
+      ?.toLowerCase()
+      ?.trim() || "";
+
+  /*
+  ========================================================
+  PAGE TYPE CONDITIONS
+  ========================================================
+  */
+
+  const isTrek =
+    pageTypeSlug === "trek";
+
+  const isTour =
+    pageTypeSlug === "tour";
+
+  /*
+  ========================================================
+  EXPERIENCE PAGE
+  ========================================================
+  */
+
+  const isExperience =
+    isTrek || isTour;
+
+  /*
+  ========================================================
+  BASIC INPUT
+  ========================================================
+  */
+
+  function handleChange(e) {
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      [name]:
+        type === "checkbox"
+          ? checked
+          : value,
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  PAGE TYPE CHANGE
+  ========================================================
+  */
+
+  function handlePageTypeChange(e) {
+    const value = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      pageType: value,
+
+      /*
+      Keep region optional for every page type.
+      The API will validate the relationship.
+      */
+      region: prev.region,
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  REGION CHANGE
+  ========================================================
+  */
+
+  function handleRegionChange(e) {
+    const value = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      region: value,
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  PRICE CHANGE
+  ========================================================
+  */
+
+  function handlePriceChange(e) {
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      price: {
+        ...prev.price,
+
+        [name]: value,
+      },
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  TREK DETAILS CHANGE
+  ========================================================
+  */
+
+  function handleTrekChange(e) {
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      trekDetails: {
+        ...prev.trekDetails,
+
+        [name]: value,
+      },
+    }));
+  }
+
+  /*
+  ========================================================
+  TOUR DETAILS CHANGE
+  ========================================================
+  */
+
+  function handleTourChange(e) {
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      tourDetails: {
+        ...prev.tourDetails,
+
+        [name]: value,
+      },
+    }));
+  }
+
+  /*
+  ========================================================
+  SEO CHANGE
+  ========================================================
+  */
+
+  function handleSeoChange(e) {
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+
+      seo: {
+        ...prev.seo,
+
+        [name]:
+          type === "checkbox"
+            ? checked
+            : value,
+      },
+    }));
+  }
+
+  /*
+  ========================================================
+  PAX PRICE
+  ========================================================
+  */
+
+  function addPaxTier() {
+    setFormData((prev) => ({
+      ...prev,
+
+      price: {
+        ...prev.price,
+
+        paxPrices: [
+          ...prev.price.paxPrices,
+
+          {
+            minPax: "",
+            maxPax: "",
+            pricePerPax: "",
+          },
+        ],
+      },
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  REMOVE PAX TIER
+  ========================================================
+  */
+
+  function removePaxTier(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+      price: {
+        ...prev.price,
+
+        paxPrices:
+          prev.price.paxPrices.filter(
+            (_, i) => i !== index
+          ),
+      },
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  UPDATE PAX TIER
+  ========================================================
+  */
+
+  function handlePaxPriceChange(
+    index,
+    field,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+      price: {
+        ...prev.price,
+
+        paxPrices:
+          prev.price.paxPrices.map(
+            (item, i) =>
+              i === index
+                ? {
+                    ...item,
+                    [field]: value,
+                  }
+                : item
+          ),
+      },
+    }));
+
+    setFormError("");
+  }
+
+  /*
+  ========================================================
+  ITINERARY
+  ========================================================
+  */
+
+  function addItinerary() {
+    setFormData((prev) => ({
+      ...prev,
+
+      itinerary: [
+        ...prev.itinerary,
+
+        {
+          day:
+            prev.itinerary.length + 1,
+
+          title: "",
+
+          description: "",
+
+          accommodation: "",
+
+          meal: "",
+
+          altitude: "",
+
+          walkingHours: "",
+        },
+      ],
+    }));
+  }
+
+  /*
+  ========================================================
+  REMOVE ITINERARY
+  ========================================================
+  */
+
+  function removeItinerary(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+      itinerary:
+        prev.itinerary
+          .filter(
+            (_, i) => i !== index
+          )
+          .map(
+            (item, i) => ({
+              ...item,
+              day: i + 1,
+            })
+          ),
+    }));
+  }
+
+  /*
+  ========================================================
+  UPDATE ITINERARY
+  ========================================================
+  */
+
+  function handleItineraryChange(
+    index,
+    field,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+      itinerary:
+        prev.itinerary.map(
+          (item, i) =>
+            i === index
+              ? {
+                  ...item,
+                  [field]: value,
+                }
+              : item
+        ),
+    }));
+  }
+
+  /*
+  ========================================================
+  INCLUSIONS
+  ========================================================
+  */
+
+  function addInclusion() {
+    setFormData((prev) => ({
+      ...prev,
+
+      inclusions: [
+        ...prev.inclusions,
+        "",
+      ],
+    }));
+  }
+
+  function removeInclusion(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+      inclusions:
+        prev.inclusions.filter(
+          (_, i) => i !== index
+        ),
+    }));
+  }
+
+  function handleInclusionChange(
+    index,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+      inclusions:
+        prev.inclusions.map(
+          (item, i) =>
+            i === index
+              ? value
+              : item
+        ),
+    }));
+  }
+
+  /*
+  ========================================================
+  EXCLUSIONS
+  ========================================================
+  */
+
+  function addExclusion() {
+    setFormData((prev) => ({
+      ...prev,
+
+      exclusions: [
+        ...prev.exclusions,
+        "",
+      ],
+    }));
+  }
+
+  function removeExclusion(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+      exclusions:
+        prev.exclusions.filter(
+          (_, i) => i !== index
+        ),
+    }));
+  }
+
+  function handleExclusionChange(
+    index,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+      exclusions:
+        prev.exclusions.map(
+          (item, i) =>
+            i === index
+              ? value
+              : item
+        ),
+    }));
+  }
+
+  /*
+  ========================================================
+  VALIDATE PAX PRICES
+  ========================================================
+  */
+
+  function validatePaxPrices() {
+    if (
+      formData.price.pricingType !==
+      "pax_based"
+    ) {
+      return true;
+    }
+
+    if (
+      formData.price.paxPrices.length === 0
+    ) {
+      setFormError(
+        "Please add at least one PAX price tier."
+      );
+
+      return false;
+    }
+
+    const tiers =
+      formData.price.paxPrices
+        .map((item, index) => {
+          const minPax =
+            item.minPax === ""
+              ? null
+              : Number(item.minPax);
+
+          const maxPax =
+            item.maxPax === ""
+              ? null
+              : Number(item.maxPax);
+
+          const pricePerPax =
+            item.pricePerPax === ""
+              ? null
+              : Number(item.pricePerPax);
+
+          return {
+            index,
+            minPax,
+            maxPax,
+            pricePerPax,
+          };
+        });
+
+    /*
+    ------------------------------------------------------
+    BASIC VALUE VALIDATION
+    ------------------------------------------------------
+    */
+
+    for (const tier of tiers) {
+      if (
+        tier.minPax === null ||
+        !Number.isInteger(tier.minPax) ||
+        tier.minPax < 1
+      ) {
+        setFormError(
+          `Tier ${
+            tier.index + 1
+          }: Minimum PAX must be a whole number greater than 0.`
+        );
+
+        return false;
+      }
+
+      if (
+        tier.pricePerPax === null ||
+        !Number.isFinite(
+          tier.pricePerPax
+        ) ||
+        tier.pricePerPax <= 0
+      ) {
+        setFormError(
+          `Tier ${
+            tier.index + 1
+          }: Price per PAX must be greater than 0.`
+        );
+
+        return false;
+      }
+
+      if (
+        tier.maxPax !== null &&
+        (
+          !Number.isInteger(
+            tier.maxPax
+          ) ||
+          tier.maxPax < tier.minPax
+        )
+      ) {
+        setFormError(
+          `Tier ${
+            tier.index + 1
+          }: Maximum PAX must be greater than or equal to Minimum PAX.`
+        );
+
+        return false;
+      }
+    }
+
+    /*
+    ------------------------------------------------------
+    SORT BY MINIMUM PAX
+    ------------------------------------------------------
+    */
+
+    const sortedTiers = [
+      ...tiers,
+    ].sort(
+      (a, b) =>
+        a.minPax - b.minPax
+    );
+
+    /*
+    ------------------------------------------------------
+    CHECK OVERLAP
+    ------------------------------------------------------
+    */
+
+    for (
+      let i = 0;
+      i < sortedTiers.length - 1;
+      i++
+    ) {
+      const current =
+        sortedTiers[i];
+
+      const next =
+        sortedTiers[i + 1];
+
+      /*
+      Unlimited tier must be final.
+      */
+
+      if (
+        current.maxPax === null
+      ) {
+        setFormError(
+          "An unlimited PAX tier must be the final tier."
+        );
+
+        return false;
+      }
+
+      if (
+        current.maxPax >=
+        next.minPax
+      ) {
+        setFormError(
+          `PAX tiers overlap around ${next.minPax} PAX.`
+        );
+
+        return false;
+      }
+
+      /*
+      Optional continuity warning:
+      We don't force continuous tiers,
+      but the user should be aware of gaps.
+      */
+    }
+
+    return true;
+  }
+
+  /*
+  ========================================================
+  CLEAN PAX PRICES
+  ========================================================
+  */
+
+  function getCleanPaxPrices() {
+    return formData.price.paxPrices
+      .map((item) => ({
+        minPax:
+          item.minPax === ""
+            ? ""
+            : Number(item.minPax),
+
+        maxPax:
+          item.maxPax === ""
+            ? null
+            : Number(item.maxPax),
+
+        pricePerPax:
+          item.pricePerPax === ""
+            ? ""
+            : Number(
+                item.pricePerPax
+              ),
+      }))
+      .filter(
+        (item) =>
+          item.minPax !== "" &&
+          item.pricePerPax !== ""
+      )
+      .sort(
+        (a, b) =>
+          a.minPax - b.minPax
+      );
+  }
+
+  /*
+  ========================================================
+  CLEAN ITINERARY
+  ========================================================
+  */
+
+  function getCleanItinerary() {
+    return formData.itinerary
+      .map((item, index) => ({
+        day:
+          Number(item.day) ||
+          index + 1,
+
+        title:
+          String(
+            item.title || ""
+          ).trim(),
+
+        description:
+          String(
+            item.description || ""
+          ).trim(),
+
+        accommodation:
+          String(
+            item.accommodation ||
+              ""
+          ).trim(),
+
+        meal:
+          String(
+            item.meal || ""
+          ).trim(),
+
+        altitude:
+          String(
+            item.altitude || ""
+          ).trim(),
+
+        walkingHours:
+          item.walkingHours === ""
+            ? ""
+            : Number(
+                item.walkingHours
+              ),
+      }))
+      .filter(
+        (item) =>
+          item.title ||
+          item.description ||
+          item.accommodation ||
+          item.meal ||
+          item.altitude ||
+          item.walkingHours !== ""
+      )
+      .map(
+        (item, index) => ({
+          ...item,
+          day: index + 1,
+        })
+      );
+  }
+
+  /*
+  ========================================================
+  CLEAN STRING ARRAYS
+  ========================================================
+  */
+
+  function cleanStringArray(items) {
+    return items
+      .map((item) =>
+        String(item || "").trim()
+      )
+      .filter(Boolean);
+  }
+
+  /*
+  ========================================================
+  FORM SUBMIT
+  ========================================================
+  */
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    setFormError("");
+
+    /*
+    ------------------------------------------------------
+    PAGE TYPE
+    ------------------------------------------------------
+    */
+
+    if (!formData.pageType) {
+      setFormError(
+        "Please select a page type."
+      );
+
+      return;
+    }
+
+    /*
+    ------------------------------------------------------
+    TITLE
+    ------------------------------------------------------
+    */
+
+    if (!formData.title.trim()) {
+      setFormError(
+        "Page title is required."
+      );
+
+      return;
+    }
+
+    /*
+    ------------------------------------------------------
+    SLUG
+    ------------------------------------------------------
+    */
+
+    if (!formData.slug.trim()) {
+      setFormError(
+        "Page slug is required."
+      );
+
+      return;
+    }
+
+    /*
+    ------------------------------------------------------
+    PRICE
+    ------------------------------------------------------
+    */
+
+    if (isExperience) {
+      if (
+        formData.price.pricingType ===
+        "fixed"
+      ) {
+        const amount =
+          formData.price.amount === ""
+            ? 0
+            : Number(
+                formData.price.amount
+              );
+
+        if (
+          !Number.isFinite(amount) ||
+          amount < 0
+        ) {
+          setFormError(
+            "Fixed price must be a valid number."
+          );
+
+          return;
+        }
+      }
+
+      if (
+        formData.price.pricingType ===
+        "pax_based"
+      ) {
+        if (!validatePaxPrices()) {
+          return;
+        }
+      }
+    }
+
+    /*
+    ------------------------------------------------------
+    CLEAN PAX PRICES
+    ------------------------------------------------------
+    */
+
+    const cleanedPaxPrices =
+      getCleanPaxPrices();
+
+    /*
+    ------------------------------------------------------
+    CLEAN ITINERARY
+    ------------------------------------------------------
+    */
+
+    const cleanedItinerary =
+      getCleanItinerary();
+
+    /*
+    ------------------------------------------------------
+    PREPARE SUBMIT DATA
+    ------------------------------------------------------
+    */
+
+    const submitData = {
+      title:
+        formData.title.trim(),
+
+      slug:
+        formData.slug.trim()
+          .toLowerCase(),
+
+      pageType:
+        formData.pageType,
+
+      /*
+      Region is optional.
+      Empty value becomes null.
+      */
+
+      region:
+        formData.region || null,
+
+      description:
+        formData.description.trim(),
+
+      content:
+        formData.content.trim(),
+
+      imageUrl:
+        formData.imageUrl.trim(),
+
+      /*
+      ====================================================
+      PRICE
+      ====================================================
+      */
+
+      price: {
+        currency:
+          formData.price.currency,
+
+        pricingType:
+          formData.price.pricingType,
+
+        amount:
+          formData.price.amount === ""
+            ? 0
+            : Number(
+                formData.price.amount
+              ),
+
+        paxPrices:
+          formData.price.pricingType ===
+          "pax_based"
+            ? cleanedPaxPrices
+            : [],
+      },
+
+      /*
+      ====================================================
+      TREK DETAILS
+      ====================================================
+      */
+
+      trekDetails: {
+        duration:
+          formData.trekDetails.duration.trim(),
+
+        maxAltitude:
+          formData.trekDetails.maxAltitude.trim(),
+
+        difficulty:
+          formData.trekDetails.difficulty.trim(),
+
+        bestSeason:
+          formData.trekDetails.bestSeason.trim(),
+
+        startingPoint:
+          formData.trekDetails.startingPoint.trim(),
+
+        endingPoint:
+          formData.trekDetails.endingPoint.trim(),
+
+        accommodation:
+          formData.trekDetails.accommodation.trim(),
+
+        meals:
+          formData.trekDetails.meals.trim(),
+
+        groupSize:
+          formData.trekDetails.groupSize.trim(),
+
+        permits:
+          formData.trekDetails.permits.trim(),
+
+        transportation:
+          formData.trekDetails.transportation.trim(),
+
+        guide:
+          formData.trekDetails.guide.trim(),
+      },
+
+      /*
+      ====================================================
+      TOUR DETAILS
+      ====================================================
+      */
+
+      tourDetails: {
+        duration:
+          formData.tourDetails.duration.trim(),
+
+        tourType:
+          formData.tourDetails.tourType.trim(),
+
+        destination:
+          formData.tourDetails.destination.trim(),
+
+        bestSeason:
+          formData.tourDetails.bestSeason.trim(),
+
+        groupSize:
+          formData.tourDetails.groupSize.trim(),
+
+        accommodation:
+          formData.tourDetails.accommodation.trim(),
+
+        transportation:
+          formData.tourDetails.transportation.trim(),
+      },
+
+      /*
+      ====================================================
+      ITINERARY
+      ====================================================
+      */
+
+      itinerary:
+        cleanedItinerary,
+
+      /*
+      ====================================================
+      INCLUSIONS
+      ====================================================
+      */
+
+      inclusions:
+        cleanStringArray(
+          formData.inclusions
+        ),
+
+      /*
+      ====================================================
+      EXCLUSIONS
+      ====================================================
+      */
+
+      exclusions:
+        cleanStringArray(
+          formData.exclusions
+        ),
+
+      /*
+      ====================================================
+      IMPORTANT INFORMATION
+      ====================================================
+      */
+
+      importantInformation:
+        formData.importantInformation.trim(),
+
+      /*
+      ====================================================
+      PUBLISHING
+      ====================================================
+      */
+
+      published:
+        Boolean(
+          formData.published
+        ),
+
+      order:
+        Number(
+          formData.order || 0
+        ),
+
+      /*
+      ====================================================
+      SEO
+      ====================================================
+      */
+
+      seo: {
+        metaTitle:
+          formData.seo.metaTitle.trim(),
+
+        metaDescription:
+          formData.seo.metaDescription.trim(),
+
+        keywords:
+          cleanStringArray(
+            formData.seo.keywords
+          ),
+
+        ogTitle:
+          formData.seo.ogTitle.trim(),
+
+        ogDescription:
+          formData.seo.ogDescription.trim(),
+
+        ogImage:
+          formData.seo.ogImage.trim(),
+
+        canonicalUrl:
+          formData.seo.canonicalUrl.trim(),
+
+        noIndex:
+          Boolean(
+            formData.seo.noIndex
+          ),
+      },
+    };
+
+    /*
+    ======================================================
+    SEND DATA TO PARENT
+    ======================================================
+    */
+
+    if (onSubmit) {
+      onSubmit(submitData);
+    }
+  }
+
+  /*
+  ========================================================
+  RENDER
+  ========================================================
+  */
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 pb-12"
+    >
+      {formError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {formError}
+        </div>
+      )}
+
+      {/* =================================================
+          BASIC INFORMATION
+      ================================================= */}
+
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <h2 className="mb-6 text-xl font-bold text-gray-900">
+          Basic Information
+        </h2>
+
+        <div className="grid gap-6 md:grid-cols-2">
+
+          {/* TITLE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Page Title
+            </label>
+
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Everest Base Camp Trek"
+              required
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* SLUG */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Slug
+            </label>
+
+            <input
+              type="text"
+              name="slug"
+              value={formData.slug}
+              onChange={handleChange}
+              placeholder="everest-base-camp-trek"
+              required
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              Use lowercase letters, numbers and hyphens.
+            </p>
+          </div>
+
+          {/* PAGE TYPE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Page Type
+            </label>
+
+            <select
+              value={formData.pageType}
+              onChange={
+                handlePageTypeChange
+              }
+              required
+              disabled={
+                loadingPageTypes
+              }
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="">
+                {loadingPageTypes
+                  ? "Loading Page Types..."
+                  : "Select Page Type"}
+              </option>
+
+              {pageTypes.map(
+                (type) => (
+                  <option
+                    key={type._id}
+                    value={type._id}
+                  >
+                    {type.name}
+                  </option>
+                )
+              )}
+            </select>
+
+            {pageTypeError && (
+              <p className="mt-1 text-xs text-red-600">
+                {pageTypeError}
+              </p>
+            )}
+
+            {selectedPageType?.description && (
+              <p className="mt-2 text-xs text-gray-500">
+                {
+                  selectedPageType.description
+                }
+              </p>
+            )}
+          </div>
+
+          {/* REGION */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Region
+            </label>
+
+            <select
+              value={formData.region}
+              onChange={
+                handleRegionChange
+              }
+              disabled={
+                loadingRegions
+              }
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="">
+                {loadingRegions
+                  ? "Loading Regions..."
+                  : "No Region"}
+              </option>
+
+              {regions.map(
+                (region) => (
+                  <option
+                    key={region._id}
+                    value={region._id}
+                  >
+                    {region.name}
+                  </option>
+                )
+              )}
+            </select>
+
+            {regionError && (
+              <p className="mt-1 text-xs text-red-600">
+                {regionError}
+              </p>
+            )}
+
+            <p className="mt-1 text-xs text-gray-500">
+              Region is optional.
+            </p>
+          </div>
+
+          {/* IMAGE */}
+
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Image URL
+            </label>
+
+            <input
+              type="url"
+              name="imageUrl"
+              value={
+                formData.imageUrl
+              }
+              onChange={handleChange}
+              placeholder="https://res.cloudinary.com/..."
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* IMAGE PREVIEW */}
+
+          {formData.imageUrl && (
+            <div className="md:col-span-2">
+              <p className="mb-2 text-sm font-medium text-gray-700">
+                Image Preview
+              </p>
+
+              <img
+                src={formData.imageUrl}
+                alt="Page preview"
+                className="h-48 w-full rounded-lg border object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display =
+                    "none";
+                }}
+              />
+            </div>
+          )}
+
+          {/* DESCRIPTION */}
+
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Short Description
+            </label>
+
+            <textarea
+              name="description"
+              value={
+                formData.description
+              }
+              onChange={handleChange}
+              rows="4"
+              placeholder="Write a short description..."
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* CONTENT */}
+
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Main Content
+            </label>
+
+            <textarea
+              name="content"
+              value={formData.content}
+              onChange={handleChange}
+              rows="8"
+              placeholder="Write page content..."
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* =================================================
+          PACKAGE PRICING
+      ================================================= */}
+
+      {isExperience && (
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900">
+              Package Pricing
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Set fixed or PAX-based pricing.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+
+            {/* CURRENCY */}
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Currency
+              </label>
+
+              <select
+                name="currency"
+                value={
+                  formData.price.currency
+                }
+                onChange={
+                  handlePriceChange
+                }
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              >
+                <option value="USD">
+                  USD - US Dollar
+                </option>
+
+                <option value="EUR">
+                  EUR - Euro
+                </option>
+
+                <option value="GBP">
+                  GBP - British Pound
+                </option>
+
+                <option value="AUD">
+                  AUD - Australian Dollar
+                </option>
+
+                <option value="CAD">
+                  CAD - Canadian Dollar
+                </option>
+
+                <option value="NPR">
+                  NPR - Nepalese Rupee
+                </option>
+              </select>
+            </div>
+
+            {/* PRICING TYPE */}
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Pricing Type
+              </label>
+
+              <select
+                name="pricingType"
+                value={
+                  formData.price
+                    .pricingType
+                }
+                onChange={
+                  handlePriceChange
+                }
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              >
+                <option value="fixed">
+                  Fixed Price
+                </option>
+
+                <option value="pax_based">
+                  PAX Based Pricing
+                </option>
+              </select>
+            </div>
+          </div>
+
+          {/* =================================================
+              FIXED PRICE
+          ================================================= */}
+
+          {formData.price
+            .pricingType ===
+            "fixed" && (
+            <div className="mt-6 rounded-lg bg-gray-50 p-5">
+
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Price Per Person
+              </label>
+
+              <div className="flex">
+
+                <span className="flex items-center rounded-l-lg border border-r-0 bg-gray-100 px-4 text-sm font-medium text-gray-600">
+                  {
+                    formData.price
+                      .currency
+                  }
+                </span>
+
+                <input
+                  type="number"
+                  name="amount"
+                  min="0"
+                  step="0.01"
+                  value={
+                    formData.price
+                      .amount
+                  }
+                  onChange={
+                    handlePriceChange
+                  }
+                  placeholder="1500"
+                  className="w-full rounded-r-lg border px-4 py-3 outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <p className="mt-2 text-xs text-gray-500">
+                This is the price charged per person.
+              </p>
+            </div>
+          )}
+
+          {/* =================================================
+              PAX BASED
+          ================================================= */}
+
+          {formData.price
+            .pricingType ===
+            "pax_based" && (
+            <div className="mt-6">
+
+              <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+
+                <div>
+                  <h3 className="font-semibold text-gray-900">
+                    PAX Price Tiers
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    Define the price per person for different group sizes.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={
+                    addPaxTier
+                  }
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  + Add Price Tier
+                </button>
+              </div>
+
+              {formData.price
+                .paxPrices.length ===
+                0 && (
+                <div className="rounded-lg border border-dashed p-8 text-center">
+
+                  <p className="text-sm text-gray-500">
+                    No PAX pricing tiers added.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={
+                      addPaxTier
+                    }
+                    className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+                  >
+                    Add your first price tier
+                  </button>
+                </div>
+              )}
+
+              <div className="space-y-4">
+
+                {formData.price
+                  .paxPrices
+                  .map(
+                    (
+                      tier,
+                      index
+                    ) => (
+                      <div
+                        key={index}
+                        className="rounded-xl border bg-gray-50 p-4"
+                      >
+                        <div className="mb-4 flex items-center justify-between">
+
+                          <h4 className="font-semibold text-gray-800">
+                            Tier{" "}
+                            {index + 1}
+                          </h4>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removePaxTier(
+                                index
+                              )
+                            }
+                            className="text-sm font-medium text-red-600 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-3">
+
+                          {/* MIN */}
+
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Minimum PAX
+                            </label>
+
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={
+                                tier.minPax
+                              }
+                              onChange={(e) =>
+                                handlePaxPriceChange(
+                                  index,
+                                  "minPax",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="1"
+                              className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                            />
+                          </div>
+
+                          {/* MAX */}
+
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Maximum PAX
+                            </label>
+
+                            <input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={
+                                tier.maxPax
+                              }
+                              onChange={(e) =>
+                                handlePaxPriceChange(
+                                  index,
+                                  "maxPax",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Unlimited"
+                              className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                            />
+
+                            <p className="mt-1 text-xs text-gray-500">
+                              Empty = unlimited.
+                            </p>
+                          </div>
+
+                          {/* PRICE */}
+
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                              Price Per PAX
+                            </label>
+
+                            <div className="flex">
+
+                              <span className="flex items-center rounded-l-lg border border-r-0 bg-gray-100 px-3 text-sm text-gray-600">
+                                {
+                                  formData
+                                    .price
+                                    .currency
+                                }
+                              </span>
+
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={
+                                  tier.pricePerPax
+                                }
+                                onChange={(e) =>
+                                  handlePaxPriceChange(
+                                    index,
+                                    "pricePerPax",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="1500"
+                                className="w-full rounded-r-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* =================================================
+          TREK DETAILS
+      ================================================= */}
+
+      {isTrek && (
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <h2 className="mb-6 text-xl font-bold text-gray-900">
+            Trek Details
+          </h2>
+
+          <div className="grid gap-6 md:grid-cols-2">
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Duration
+              </label>
+
+              <input
+                type="text"
+                name="duration"
+                value={
+                  formData.trekDetails
+                    .duration
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="14 Days"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Difficulty
+              </label>
+
+              <input
+                type="text"
+                name="difficulty"
+                value={
+                  formData.trekDetails
+                    .difficulty
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Moderate"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Maximum Altitude
+              </label>
+
+              <input
+                type="text"
+                name="maxAltitude"
+                value={
+                  formData.trekDetails
+                    .maxAltitude
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="5,364m"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Best Season
+              </label>
+
+              <input
+                type="text"
+                name="bestSeason"
+                value={
+                  formData.trekDetails
+                    .bestSeason
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="March - May, September - November"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Starting Point
+              </label>
+
+              <input
+                type="text"
+                name="startingPoint"
+                value={
+                  formData.trekDetails
+                    .startingPoint
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Kathmandu"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Ending Point
+              </label>
+
+              <input
+                type="text"
+                name="endingPoint"
+                value={
+                  formData.trekDetails
+                    .endingPoint
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Kathmandu"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Accommodation
+              </label>
+
+              <input
+                type="text"
+                name="accommodation"
+                value={
+                  formData.trekDetails
+                    .accommodation
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Tea House / Lodge"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Meals
+              </label>
+
+              <input
+                type="text"
+                name="meals"
+                value={
+                  formData.trekDetails
+                    .meals
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Breakfast, Lunch and Dinner"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Group Size
+              </label>
+
+              <input
+                type="text"
+                name="groupSize"
+                value={
+                  formData.trekDetails
+                    .groupSize
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="2 - 15 people"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Permits
+              </label>
+
+              <input
+                type="text"
+                name="permits"
+                value={
+                  formData.trekDetails
+                    .permits
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="TIMS, National Park Permit"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Transportation
+              </label>
+
+              <input
+                type="text"
+                name="transportation"
+                value={
+                  formData.trekDetails
+                    .transportation
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Private Vehicle / Flight"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Guide
+              </label>
+
+              <input
+                type="text"
+                name="guide"
+                value={
+                  formData.trekDetails
+                    .guide
+                }
+                onChange={
+                  handleTrekChange
+                }
+                placeholder="Professional Licensed Guide"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =================================================
+          TOUR DETAILS
+      ================================================= */}
+
+      {isTour && (
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <h2 className="mb-6 text-xl font-bold text-gray-900">
+            Tour Details
+          </h2>
+
+          <div className="grid gap-6 md:grid-cols-2">
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Duration
+              </label>
+
+              <input
+                type="text"
+                name="duration"
+                value={
+                  formData.tourDetails
+                    .duration
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="7 Days"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Tour Type
+              </label>
+
+              <input
+                type="text"
+                name="tourType"
+                value={
+                  formData.tourDetails
+                    .tourType
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="Cultural Tour"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Destination
+              </label>
+
+              <input
+                type="text"
+                name="destination"
+                value={
+                  formData.tourDetails
+                    .destination
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="Kathmandu, Pokhara"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Best Season
+              </label>
+
+              <input
+                type="text"
+                name="bestSeason"
+                value={
+                  formData.tourDetails
+                    .bestSeason
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="October - May"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Group Size
+              </label>
+
+              <input
+                type="text"
+                name="groupSize"
+                value={
+                  formData.tourDetails
+                    .groupSize
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="2 - 20 people"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Accommodation
+              </label>
+
+              <input
+                type="text"
+                name="accommodation"
+                value={
+                  formData.tourDetails
+                    .accommodation
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="Hotel"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Transportation
+              </label>
+
+              <input
+                type="text"
+                name="transportation"
+                value={
+                  formData.tourDetails
+                    .transportation
+                }
+                onChange={
+                  handleTourChange
+                }
+                placeholder="Private Vehicle"
+                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =================================================
+          ITINERARY
+      ================================================= */}
+
+      {isExperience && (
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">
+                Itinerary
+              </h2>
+
+              <p className="text-sm text-gray-500">
+                Add daily activities, meals, accommodation and altitude.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={
+                addItinerary
+              }
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              + Add Day
+            </button>
+          </div>
+
+          {formData.itinerary.length ===
+            0 && (
+            <div className="rounded-lg border border-dashed p-8 text-center">
+
+              <p className="text-sm text-gray-500">
+                No itinerary days added.
+              </p>
+
+              <button
+                type="button"
+                onClick={
+                  addItinerary
+                }
+                className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+              >
+                Add Day 1
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-5">
+
+            {formData.itinerary.map(
+              (
+                item,
+                index
+              ) => (
+                <div
+                  key={index}
+                  className="rounded-xl border bg-gray-50 p-5"
+                >
+
+                  <div className="mb-4 flex items-center justify-between">
+
+                    <h3 className="font-semibold text-gray-900">
+                      Day{" "}
+                      {index + 1}
+                    </h3>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeItinerary(
+                          index
+                        )
+                      }
+                      className="text-sm font-medium text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+
+                    {/* DAY */}
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Day
+                      </label>
+
+                      <input
+                        type="number"
+                        min="1"
+                        value={
+                          item.day
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "day",
+                            e.target.value
+                          )
+                        }
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* ALTITUDE */}
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Altitude
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          item.altitude
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "altitude",
+                            e.target.value
+                          )
+                        }
+                        placeholder="3,440m"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* TITLE */}
+
+                    <div className="md:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Day Title
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          item.title
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "title",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Kathmandu to Lukla"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* DESCRIPTION */}
+
+                    <div className="md:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Description
+                      </label>
+
+                      <textarea
+                        value={
+                          item.description
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        rows="4"
+                        placeholder="Describe the activities for this day..."
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* ACCOMMODATION */}
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Accommodation
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          item.accommodation
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "accommodation",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Tea House / Hotel"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* MEAL */}
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Meal
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          item.meal
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "meal",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Breakfast, Lunch, Dinner"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                    {/* WALKING HOURS */}
+
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Walking Hours
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.5"
+                        value={
+                          item.walkingHours
+                        }
+                        onChange={(e) =>
+                          handleItineraryChange(
+                            index,
+                            "walkingHours",
+                            e.target.value
+                          )
+                        }
+                        placeholder="5"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* =================================================
+          INCLUSIONS / EXCLUSIONS
+      ================================================= */}
+
+      {isExperience && (
+        <section className="grid gap-8 lg:grid-cols-2">
+
+          {/* INCLUSIONS */}
+
+          <div className="rounded-xl border bg-white p-6 shadow-sm">
+
+            <div className="mb-5 flex items-center justify-between">
+
+              <h2 className="text-xl font-bold text-gray-900">
+                Inclusions
+              </h2>
+
+              <button
+                type="button"
+                onClick={
+                  addInclusion
+                }
+                className="text-sm font-semibold text-blue-600 hover:underline"
+              >
+                + Add
+              </button>
+            </div>
+
+            <div className="space-y-3">
+
+              {formData.inclusions.map(
+                (
+                  item,
+                  index
+                ) => (
+                  <div
+                    key={index}
+                    className="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) =>
+                        handleInclusionChange(
+                          index,
+                          e.target.value
+                        )
+                      }
+                      placeholder="Airport pickup"
+                      className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeInclusion(
+                          index
+                        )
+                      }
+                      className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              )}
+
+              {formData.inclusions
+                .length === 0 && (
+                <p className="text-sm text-gray-500">
+                  No inclusions added.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* EXCLUSIONS */}
+
+          <div className="rounded-xl border bg-white p-6 shadow-sm">
+
+            <div className="mb-5 flex items-center justify-between">
+
+              <h2 className="text-xl font-bold text-gray-900">
+                Exclusions
+              </h2>
+
+              <button
+                type="button"
+                onClick={
+                  addExclusion
+                }
+                className="text-sm font-semibold text-blue-600 hover:underline"
+              >
+                + Add
+              </button>
+            </div>
+
+            <div className="space-y-3">
+
+              {formData.exclusions.map(
+                (
+                  item,
+                  index
+                ) => (
+                  <div
+                    key={index}
+                    className="flex gap-2"
+                  >
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) =>
+                        handleExclusionChange(
+                          index,
+                          e.target.value
+                        )
+                      }
+                      placeholder="International airfare"
+                      className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeExclusion(
+                          index
+                        )
+                      }
+                      className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )
+              )}
+
+              {formData.exclusions
+                .length === 0 && (
+                <p className="text-sm text-gray-500">
+                  No exclusions added.
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* =================================================
+          IMPORTANT INFORMATION
+      ================================================= */}
+
+      {isExperience && (
+        <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <h2 className="mb-5 text-xl font-bold text-gray-900">
+            Important Information
+          </h2>
+
+          <textarea
+            name="importantInformation"
+            value={
+              formData.importantInformation
+            }
+            onChange={
+              handleChange
+            }
+            rows="7"
+            placeholder="Permits, visa information, travel insurance, fitness requirements, etc."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </section>
+      )}
+
+      {/* =================================================
+          SEO
+      ================================================= */}
+
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+        <h2 className="mb-6 text-xl font-bold text-gray-900">
+          SEO Settings
+        </h2>
+
+        <div className="space-y-6">
+
+          {/* META TITLE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Meta Title
+            </label>
+
+            <input
+              type="text"
+              name="metaTitle"
+              value={
+                formData.seo
+                  .metaTitle
+              }
+              onChange={
+                handleSeoChange
+              }
+              placeholder="Everest Base Camp Trek | Trek Nepal"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* META DESCRIPTION */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Meta Description
+            </label>
+
+            <textarea
+              name="metaDescription"
+              value={
+                formData.seo
+                  .metaDescription
+              }
+              onChange={
+                handleSeoChange
+              }
+              rows="4"
+              placeholder="Explore Everest Base Camp with our professional trekking package..."
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* KEYWORDS */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Keywords
+            </label>
+
+            <input
+              type="text"
+              value={
+                formData.seo.keywords.join(
+                  ", "
+                )
+              }
+              onChange={(e) => {
+                const keywords =
+                  e.target.value
+                    .split(",")
+                    .map((item) =>
+                      item.trim()
+                    )
+                    .filter(Boolean);
+
+                setFormData(
+                  (prev) => ({
+                    ...prev,
+
+                    seo: {
+                      ...prev.seo,
+                      keywords,
+                    },
+                  })
+                );
+              }}
+              placeholder="everest trek, nepal trekking, everest base camp"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              Separate keywords with commas.
+            </p>
+          </div>
+
+          {/* OG TITLE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Open Graph Title
+            </label>
+
+            <input
+              type="text"
+              name="ogTitle"
+              value={
+                formData.seo
+                  .ogTitle
+              }
+              onChange={
+                handleSeoChange
+              }
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* OG DESCRIPTION */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Open Graph Description
+            </label>
+
+            <textarea
+              name="ogDescription"
+              value={
+                formData.seo
+                  .ogDescription
+              }
+              onChange={
+                handleSeoChange
+              }
+              rows="4"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* OG IMAGE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Open Graph Image
+            </label>
+
+            <input
+              type="url"
+              name="ogImage"
+              value={
+                formData.seo
+                  .ogImage
+              }
+              onChange={
+                handleSeoChange
+              }
+              placeholder="https://res.cloudinary.com/..."
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* CANONICAL */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Canonical URL
+            </label>
+
+            <input
+              type="url"
+              name="canonicalUrl"
+              value={
+                formData.seo
+                  .canonicalUrl
+              }
+              onChange={
+                handleSeoChange
+              }
+              placeholder="https://example.com/everest-base-camp-trek"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* NO INDEX */}
+
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
+
+            <input
+              type="checkbox"
+              name="noIndex"
+              checked={
+                formData.seo
+                  .noIndex
+              }
+              onChange={
+                handleSeoChange
+              }
+              className="h-5 w-5 rounded"
+            />
+
+            <span className="text-sm text-gray-700">
+              Prevent search engines from indexing this page.
+            </span>
+          </label>
+        </div>
+      </section>
+
+      {/* =================================================
+          PUBLISHING
+      ================================================= */}
+
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+        <h2 className="mb-6 text-xl font-bold text-gray-900">
+          Publishing
+        </h2>
+
+        <div className="grid gap-6 md:grid-cols-2">
+
+          {/* ORDER */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Display Order
+            </label>
+
+            <input
+              type="number"
+              name="order"
+              value={
+                formData.order
+              }
+              onChange={
+                handleChange
+              }
+              min="0"
+              step="1"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* PUBLISHED */}
+
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
+
+            <input
+              type="checkbox"
+              name="published"
+              checked={
+                formData.published
+              }
+              onChange={
+                handleChange
+              }
+              className="h-5 w-5 rounded"
+            />
+
+            <div>
+              <p className="font-medium text-gray-900">
+                Publish Page
+              </p>
+
+              <p className="text-sm text-gray-500">
+                Make this page visible on the website.
+              </p>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      {/* =================================================
+          SUBMIT
+      ================================================= */}
+
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+
+        <button
+          type="submit"
+          disabled={
+            loading ||
+            loadingPageTypes ||
+            !formData.pageType
+          }
+          className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loading
+            ? "Saving..."
+            : initialData._id
+              ? "Update Page"
+              : "Create Page"}
+        </button>
+      </div>
+    </form>
+  );
+}

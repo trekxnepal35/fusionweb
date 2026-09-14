@@ -1,69 +1,1234 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+import Link from "next/link";
+
+import {
+  useEffect,
+  useState,
+} from "react";
+
+
+/*
+=========================================
+HOMEPAGE
+=========================================
+*/
+
+export default function HomePage() {
+
+  const [
+    treks,
+    setTreks,
+  ] = useState([]);
+
+
+  const [
+    tours,
+    setTours,
+  ] = useState([]);
+
+
+  const [
+    regions,
+    setRegions,
+  ] = useState([]);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+console.log("treks",treks)
+  /*
+  ========================================
+  FETCH HOMEPAGE DATA
+  ========================================
+  */
+
+  useEffect(() => {
+
+    async function loadData() {
+
+      try {
+
+        setLoading(true);
+
+        setError("");
+
+
+        /*
+        ======================================
+        FETCH TREKS
+        ======================================
+        */
+
+        const trekResponse =
+          await fetch(
+            "/api/treks?published=true"
+          );
+
+
+        const trekResult =
+          await trekResponse.json();
+
+
+        if (
+          trekResult.success
+        ) {
+
+          setTreks(
+            trekResult.data || []
+          );
+        }
+
+
+        /*
+        ======================================
+        FETCH TOURS
+        ======================================
+        */
+
+        const tourResponse =
+          await fetch(
+            "/api/tours?published=true"
+          );
+
+
+        const tourResult =
+          await tourResponse.json();
+
+
+        if (
+          tourResult.success
+        ) {
+
+          setTours(
+            tourResult.data || []
+          );
+        }
+
+
+        /*
+        ======================================
+        FETCH REGIONS
+        ======================================
+        */
+
+        const regionResponse =
+          await fetch(
+            "/api/regions?published=true"
+          );
+
+
+        const regionResult =
+          await regionResponse.json();
+
+
+        if (
+          regionResult.success
+        ) {
+
+          setRegions(
+            regionResult.data || []
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Homepage loading error:",
+          error
+        );
+
+
+        setError(
+          "Unable to load some website content."
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    }
+
+
+    loadData();
+
+  }, []);
+
+
+  /*
+  =========================================
+  PRICE DISPLAY
+  =========================================
+  */
+
+  function getPrice(
+    item
+  ) {
+   
+    const price =
+      item?.price;
+
+
+    if (!price) {
+      return null;
+    }
+
+
+    if (
+      price.pricingType ===
+      "pax_based"
+    ) {
+
+      const tiers =
+        price.paxPrices || [];
+
+
+      if (
+        tiers.length === 0
+      ) {
+        return null;
+      }
+
+
+      const lowest =
+        Math.min(
+          ...tiers.map(
+            (tier) =>
+              Number(
+                tier.pricePerPax
+              )
+          )
+        );
+
+
+      if (
+        !Number.isFinite(
+          lowest
+        )
+      ) {
+        return null;
+      }
+
+
+      return {
+        amount: lowest,
+        currency:
+          price.currency ||
+          "USD",
+        label:
+          "From",
+      };
+    }
+
+
+    const amount =
+      Number(
+        price.amount
+      );
+
+
+    if (
+      !Number.isFinite(
+        amount
+      ) ||
+      amount <= 0
+    ) {
+      return null;
+    }
+
+
+    return {
+      amount,
+      currency:
+        price.currency ||
+        "USD",
+      label: "",
+    };
+  }
+
+
+  /*
+  =========================================
+  LOADING
+  =========================================
+  */
+
+  if (loading) {
+
+    return (
+      <main className="min-h-screen bg-white">
+
+        <section className="relative min-h-[650px] overflow-hidden bg-slate-900">
+
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-800 to-slate-900" />
+
+          <div className="relative mx-auto flex min-h-[650px] max-w-7xl items-center px-6 py-20 lg:px-8">
+
+            <div className="w-full max-w-3xl animate-pulse">
+
+              <div className="mb-6 h-5 w-40 rounded bg-white/20" />
+
+              <div className="mb-4 h-14 max-w-2xl rounded bg-white/20" />
+
+              <div className="mb-8 h-14 max-w-xl rounded bg-white/20" />
+
+              <div className="h-14 w-48 rounded bg-white/20" />
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <section className="mx-auto max-w-7xl px-6 py-20">
+
+          <div className="mb-12 h-10 w-72 animate-pulse rounded bg-slate-200" />
+
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+
+            {[1, 2, 3].map(
+              (item) => (
+
+                <div
+                  key={item}
+                  className="h-96 animate-pulse rounded-3xl bg-slate-100"
+                />
+
+              )
+            )}
+
+          </div>
+
+        </section>
+
       </main>
+    );
+  }
+
+
+  return (
+
+    <main className="min-h-screen bg-white">
+
+
+      {/* =====================================
+          HERO
+      ===================================== */}
+
+      <section className="relative min-h-[680px] overflow-hidden bg-slate-950">
+
+        {/* Background */}
+
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(2,6,23,.35),rgba(2,6,23,.78)), url('/images/nepal-hero.jpg')",
+          }}
+        />
+
+
+        {/* Fallback gradient */}
+
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/30 to-slate-950/80" />
+
+
+        {/* Hero content */}
+
+        <div className="relative mx-auto flex min-h-[680px] max-w-7xl items-center px-6 py-24 lg:px-8">
+
+          <div className="max-w-4xl text-white">
+
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur-md">
+
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+
+              Explore the Himalayas
+
+            </div>
+
+
+            <h1 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl">
+
+              Discover Nepal
+
+              <span className="block text-emerald-300">
+                Beyond the Ordinary
+              </span>
+
+            </h1>
+
+
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-200 sm:text-xl">
+
+              Experience breathtaking Himalayan treks,
+              authentic mountain culture and unforgettable
+              adventures across Nepal.
+
+            </p>
+
+
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+
+              <Link
+                href="/treks"
+                className="rounded-full bg-emerald-500 px-8 py-4 text-center font-bold text-white shadow-xl transition hover:-translate-y-1 hover:bg-emerald-400"
+              >
+                Explore Treks
+              </Link>
+
+
+              <Link
+                href="/tours"
+                className="rounded-full border border-white/40 bg-white/10 px-8 py-4 text-center font-bold text-white backdrop-blur-md transition hover:bg-white hover:text-slate-900"
+              >
+                Discover Tours
+              </Link>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {/* Bottom statistics */}
+
+        <div className="relative mx-auto -mt-20 max-w-7xl px-6 lg:px-8">
+
+          <div className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl sm:grid-cols-3">
+
+            <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
+
+              <div className="text-3xl font-black">
+                8,848m
+              </div>
+
+              <div className="mt-1 text-sm text-slate-300">
+                Highest Mountain
+              </div>
+
+            </div>
+
+
+            <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
+
+              <div className="text-3xl font-black">
+                14+
+              </div>
+
+              <div className="mt-1 text-sm text-slate-300">
+                Himalayan Peaks
+              </div>
+
+            </div>
+
+
+            <div className="p-6 text-center text-white">
+
+              <div className="text-3xl font-black">
+                100%
+              </div>
+
+              <div className="mt-1 text-sm text-slate-300">
+                Nepal Adventure
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================
+          ERROR
+      ===================================== */}
+
+      {error && (
+
+        <div className="mx-auto mt-8 max-w-7xl px-6 lg:px-8">
+
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+
+            {error}
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* =====================================
+          INTRO
+      ===================================== */}
+
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+
+        <div className="mx-auto max-w-3xl text-center">
+
+          <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
+            Your Himalayan Journey
+          </span>
+
+
+          <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+
+            Adventure starts here
+
+          </h2>
+
+
+          <p className="mt-6 text-lg leading-8 text-slate-600">
+
+            From iconic Himalayan trails to peaceful
+            cultural journeys, discover carefully designed
+            adventures that let you experience the real Nepal.
+
+          </p>
+
+        </div>
+
+
+        {/* Feature cards */}
+
+        <div className="mt-16 grid gap-6 md:grid-cols-3">
+
+          <FeatureCard
+            icon="🏔️"
+            title="Himalayan Treks"
+            text="Walk among the world's highest mountains and experience unforgettable Himalayan landscapes."
+          />
+
+
+          <FeatureCard
+            icon="🌿"
+            title="Authentic Experiences"
+            text="Meet local communities, discover mountain culture and travel beyond ordinary tourist routes."
+          />
+
+
+          <FeatureCard
+            icon="🧭"
+            title="Expertly Planned"
+            text="Flexible itineraries, experienced guides and carefully selected routes for a memorable journey."
+          />
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================
+          FEATURED TREKS
+      ===================================== */}
+
+      {treks.length > 0 && (
+
+        <section className="bg-slate-50 py-24">
+
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+
+            <SectionHeading
+              eyebrow="Himalayan Adventures"
+              title="Featured Treks"
+              description="Explore some of Nepal's most unforgettable trekking experiences."
+              link="/treks"
+              linkText="View all treks"
+            />
+
+
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+              {treks
+                .slice(0, 6)
+                .map(
+                  (trek) => (
+
+                    <ExperienceCard
+                      key={
+                        trek._id
+                      }
+                      item={
+                        trek
+                      }
+                      type="trek"
+                      getPrice={
+                        getPrice
+                      }
+                    />
+
+                  )
+                )}
+
+            </div>
+
+          </div>
+
+        </section>
+
+      )}
+
+
+      {/* =====================================
+          REGIONS
+      ===================================== */}
+
+      {regions.length > 0 && (
+
+        <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+
+          <SectionHeading
+            eyebrow="Explore Nepal"
+            title="Trekking Regions"
+            description="Choose a region and start planning your Himalayan adventure."
+          />
+
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+            {regions
+              .slice(0, 6)
+              .map(
+                (region) => (
+
+                  <Link
+                    key={
+                      region._id
+                    }
+                    href={`/treks/${region.slug}`}
+                    className="group relative overflow-hidden rounded-3xl bg-slate-900 p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+
+                    {region.imageUrl && (
+
+                      <img
+                        src={
+                          region.imageUrl
+                        }
+                        alt={
+                          region.name
+                        }
+                        className="absolute inset-0 h-full w-full object-cover opacity-40 transition duration-500 group-hover:scale-105 group-hover:opacity-50"
+                      />
+
+                    )}
+
+
+                    <div className="relative">
+
+                      <div className="mb-12 text-4xl">
+                        🏔️
+                      </div>
+
+
+                      <h3 className="text-2xl font-black text-white">
+
+                        {region.name}
+
+                      </h3>
+
+
+                      <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-200">
+
+                        {region.description ||
+                          "Discover amazing Himalayan adventures in this region."}
+
+                      </p>
+
+
+                      <div className="mt-6 font-bold text-emerald-300">
+
+                        Explore Region
+                        <span className="ml-2 transition group-hover:ml-3">
+                          →
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </Link>
+
+                )
+              )}
+
+          </div>
+
+        </section>
+
+      )}
+
+
+      {/* =====================================
+          TOURS
+      ===================================== */}
+
+      {tours.length > 0 && (
+
+        <section className="bg-slate-950 py-24">
+
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+
+            <SectionHeading
+              eyebrow="Beyond Trekking"
+              title="Discover Nepal Tours"
+              description="Experience Nepal's culture, heritage, wildlife and natural beauty."
+              link="/tours"
+              linkText="View all tours"
+              dark
+            />
+
+
+            <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+              {tours
+                .slice(0, 3)
+                .map(
+                  (tour) => (
+
+                    <ExperienceCard
+                      key={
+                        tour._id
+                      }
+                      item={
+                        tour
+                      }
+                      type="tour"
+                      getPrice={
+                        getPrice
+                      }
+                      dark
+                    />
+
+                  )
+                )}
+
+            </div>
+
+          </div>
+
+        </section>
+
+      )}
+
+
+      {/* =====================================
+          WHY US
+      ===================================== */}
+
+      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+
+          <div>
+
+            <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
+              Travel With Confidence
+            </span>
+
+
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+
+              Nepal is more than a destination.
+
+            </h2>
+
+
+            <p className="mt-6 text-lg leading-8 text-slate-600">
+
+              It is a place of mountains, ancient cultures,
+              welcoming communities and extraordinary
+              landscapes.
+
+            </p>
+
+
+            <div className="mt-10 space-y-6">
+
+              <Reason
+                title="Local Expertise"
+                text="Travel with people who understand Nepal's mountains, culture and communities."
+              />
+
+
+              <Reason
+                title="Flexible Experiences"
+                text="Choose from carefully designed treks and tours or build an adventure around your needs."
+              />
+
+
+              <Reason
+                title="Responsible Travel"
+                text="Experience Nepal respectfully while supporting local communities and mountain environments."
+              />
+
+            </div>
+
+          </div>
+
+
+          <div className="relative">
+
+            <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-500 to-slate-900 p-1 shadow-2xl">
+
+              <div className="flex h-full items-end rounded-[1.7rem] bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent p-8">
+
+                <div className="text-white">
+
+                  <div className="text-5xl">
+                    🏔️
+                  </div>
+
+                  <h3 className="mt-5 text-3xl font-black">
+                    The Himalayas are calling.
+                  </h3>
+
+                  <p className="mt-3 text-slate-300">
+                    Your next adventure starts in Nepal.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* =====================================
+          CTA
+      ===================================== */}
+
+      <section className="px-6 pb-24 lg:px-8">
+
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-emerald-600 px-8 py-16 text-center shadow-xl sm:px-16">
+
+          <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-100">
+            Start Your Adventure
+          </span>
+
+
+          <h2 className="mx-auto mt-4 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl">
+
+            Ready to explore Nepal?
+
+          </h2>
+
+
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-emerald-50">
+
+            Find your perfect trek or tour and begin planning
+            an unforgettable journey through the Himalayas.
+
+          </p>
+
+
+          <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+
+            <Link
+              href="/treks"
+              className="rounded-full bg-white px-8 py-4 font-bold text-emerald-700 transition hover:-translate-y-1 hover:bg-slate-100"
+            >
+              Explore Treks
+            </Link>
+
+
+            <Link
+              href="/booking"
+              className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition hover:bg-white/10"
+            >
+              Make an Inquiry
+            </Link>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+  );
+}
+
+
+/*
+=========================================
+FEATURE CARD
+=========================================
+*/
+
+function FeatureCard({
+  icon,
+  title,
+  text,
+}) {
+
+  return (
+
+    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
+
+        {icon}
+
+      </div>
+
+
+      <h3 className="mt-6 text-xl font-black text-slate-900">
+
+        {title}
+
+      </h3>
+
+
+      <p className="mt-3 leading-7 text-slate-600">
+
+        {text}
+
+      </p>
+
     </div>
+
+  );
+}
+
+
+/*
+=========================================
+SECTION HEADING
+=========================================
+*/
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  link,
+  linkText,
+  dark = false,
+}) {
+
+  return (
+
+    <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+
+      <div className="max-w-2xl">
+
+        <span
+          className={`text-sm font-bold uppercase tracking-[0.25em] ${
+            dark
+              ? "text-emerald-300"
+              : "text-emerald-600"
+          }`}
+        >
+          {eyebrow}
+        </span>
+
+
+        <h2
+          className={`mt-3 text-4xl font-black tracking-tight sm:text-5xl ${
+            dark
+              ? "text-white"
+              : "text-slate-900"
+          }`}
+        >
+          {title}
+        </h2>
+
+
+        <p
+          className={`mt-5 text-lg leading-8 ${
+            dark
+              ? "text-slate-300"
+              : "text-slate-600"
+          }`}
+        >
+          {description}
+        </p>
+
+      </div>
+
+
+      {link && (
+
+        <Link
+          href={link}
+          className={`font-bold transition ${
+            dark
+              ? "text-emerald-300 hover:text-white"
+              : "text-emerald-700 hover:text-emerald-500"
+          }`}
+        >
+
+          {linkText}
+          <span className="ml-2">
+            →
+          </span>
+
+        </Link>
+
+      )}
+
+    </div>
+
+  );
+}
+
+
+/*
+=========================================
+EXPERIENCE CARD
+=========================================
+*/
+
+function ExperienceCard({
+  item,
+  type,
+  getPrice,
+  dark = false,
+}) {
+
+  const price =
+    getPrice(item);
+
+
+  return (
+
+    <article
+      className={`group overflow-hidden rounded-3xl shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+        dark
+          ? "border border-white/10 bg-white/5"
+          : "border border-slate-200 bg-white"
+      }`}
+    >
+
+      {/* Image */}
+
+      <Link
+        href={`/${item.slug}`}
+        className="block"
+      >
+
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-200">
+
+          {item.imageUrl ? (
+
+            <img
+              src={
+                item.imageUrl
+              }
+              alt={
+                item.title
+              }
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            />
+
+          ) : (
+
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-600 to-slate-900 text-6xl">
+              🏔️
+            </div>
+
+          )}
+
+
+          <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-900 backdrop-blur">
+            {type}
+          </div>
+
+        </div>
+
+      </Link>
+
+
+      {/* Content */}
+
+      <div className="p-6">
+
+        <Link
+          href={`/${item.slug}`}
+        >
+
+          <h3
+            className={`line-clamp-2 text-2xl font-black transition ${
+              dark
+                ? "text-white group-hover:text-emerald-300"
+                : "text-slate-900 group-hover:text-emerald-700"
+            }`}
+          >
+            {item.title}
+          </h3>
+
+        </Link>
+
+
+        {item.region?.name && (
+
+          <p className="mt-2 text-sm font-semibold text-emerald-600">
+
+            📍 {item.region.name}
+
+          </p>
+
+        )}
+
+
+        <p
+          className={`mt-4 line-clamp-3 leading-7 ${
+            dark
+              ? "text-slate-300"
+              : "text-slate-600"
+          }`}
+        >
+          {item.description ||
+            "Discover an unforgettable Nepal adventure."}
+        </p>
+
+
+        {/* Price */}
+
+        {price && (
+
+          <div className="mt-6">
+
+            <span
+              className={`text-xs ${
+                dark
+                  ? "text-slate-400"
+                  : "text-slate-500"
+              }`}
+            >
+              {price.label ||
+                "Price"}
+            </span>
+
+
+            <div
+              className={`text-2xl font-black ${
+                dark
+                  ? "text-white"
+                  : "text-slate-900"
+              }`}
+            >
+
+              {price.currency}{" "}
+              {price.amount.toLocaleString()}
+
+              <span className="ml-1 text-sm font-medium text-slate-400">
+                / person
+              </span>
+
+            </div>
+
+          </div>
+
+        )}
+
+
+        {/* Buttons */}
+
+        <div className="mt-6 flex gap-3">
+            {console.log("Item details new",item)} 
+
+            {item.pageType.slug==="trek" ? (
+              <Link
+          
+          
+              href={`/treks/trek/${item.slug}`}
+              className={`flex-1 rounded-full px-5 py-3 text-center text-sm font-bold transition ${
+                dark
+                  ? "bg-white text-slate-900 hover:bg-emerald-300"
+                  : "bg-slate-900 text-white hover:bg-emerald-600"
+              }`}
+            >
+              View Details
+            </Link>
+            ):
+            <Link
+          
+          
+            href={`/tours/${item.slug}`}
+            className={`flex-1 rounded-full px-5 py-3 text-center text-sm font-bold transition ${
+              dark
+                ? "bg-white text-slate-900 hover:bg-emerald-300"
+                : "bg-slate-900 text-white hover:bg-emerald-600"
+            }`}
+          >
+            View Details
+          </Link>} 
+         
+
+
+          <Link
+            href={`/booking?experienceId=${item._id}&experienceType=${type}`}
+            className="rounded-full border border-emerald-600 px-5 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-600 hover:text-white"
+          >
+            Book
+          </Link>
+
+        </div>
+
+      </div>
+
+    </article>
+
+  );
+}
+
+
+/*
+=========================================
+REASON
+=========================================
+*/
+
+function Reason({
+  title,
+  text,
+}) {
+
+  return (
+
+    <div className="flex gap-4">
+
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-700">
+        ✓
+      </div>
+
+
+      <div>
+
+        <h3 className="font-black text-slate-900">
+          {title}
+        </h3>
+
+
+        <p className="mt-1 leading-7 text-slate-600">
+          {text}
+        </p>
+
+      </div>
+
+    </div>
+
   );
 }

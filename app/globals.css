@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ========================================
+   DESKTOP DROPDOWN
+   ======================================== */
+
+@media (min-width: 768px) {
+
+  .menu-item:hover > .submenu {
+    display: block;
+  }
+
+}
+
+/* =====================================
+   DESKTOP NAVBAR
+===================================== */
+
+@media (min-width: 768px) {
+
+  .menu-item > a {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+
+  .menu-item > a:hover {
+    transform: translateY(-1px);
+  }
+
+
+  /* Open direct dropdown */
+
+  .menu-item:hover > .submenu {
+    display: block;
+  }
+
+
+  /* Dropdown menu items */
+
+  .submenu .menu-item > a {
+    width: 100%;
+    border-radius: 0;
+  }
+
+
+  .submenu .menu-item > a:hover {
+    transform: none;
+  }
+
+}
+
+.adminmain {
+  /* background-color: lightgreen; */
+  /* margin-left: 23%; */
+  margin-right: 20px;
+  padding-right: 1%;
+  padding-left: 23%;
 }
