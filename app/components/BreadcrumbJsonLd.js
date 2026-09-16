@@ -1,4 +1,4 @@
-import JsonLd from "./JsonLd";
+import JsonLd from "@/app/components/JsonLd";
 
 export default function BreadcrumbJsonLd({
   items,

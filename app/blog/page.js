@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
-import JsonLd from "../components/JsonLd";
+import JsonLd from "@/app/components/JsonLd";
+
 
 
 /*
@@ -352,6 +353,8 @@ export default async function BlogPage({
       <JsonLd
         data={blogJsonLd}
       />
+
+      
 
 
       {/* =========================================
