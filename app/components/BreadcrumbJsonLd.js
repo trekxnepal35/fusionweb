@@ -1,5 +1,5 @@
-
 import JsonLd from "./JsonLd";
+
 export default function BreadcrumbJsonLd({
   items,
 }) {
@@ -25,6 +25,5 @@ export default function BreadcrumbJsonLd({
 
   };
 
-
-  return <JsonLd data={schema} />;
+  return <JsonLd data={schema}/> 
 }

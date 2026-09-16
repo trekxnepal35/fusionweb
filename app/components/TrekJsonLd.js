@@ -1,4 +1,6 @@
 import JsonLd from "./JsonLd";
+
+
 export default function TrekJsonLd({
   trek,
   baseUrl,
@@ -98,5 +100,6 @@ export default function TrekJsonLd({
       : {}),
 
   };
-  return <JsonLd data={schema} />;
+  return <JsonLd data={schema}/>
+ 
   }

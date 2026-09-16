@@ -9,7 +9,7 @@ import TrekJsonLd from "@/app/components/TrekJsonLd";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import FeedbackList from "@/app/components/FeedbackList";
 import FeedbackForm from "@/app/components/FeedbackForm";
-import JsonLd from "@/app/components/JsonLd";
+
 
 /*
 =========================================

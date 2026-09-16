@@ -5,6 +5,7 @@ import FeedbackForm from "@/app/components/FeedbackForm";
 import FeedbackList from "@/app/components/FeedbackList";
 import JsonLd from "@/app/components/JsonLd";
 
+
 /*
 ==================================================
 GET CURRENT BLOG
@@ -536,7 +537,7 @@ export default async function BlogDetailPage({
           ARTICLE JSON-LD
       ======================================== */}
 
-      <JsonLd data={articleJsonLd} />
+      <JsonLd data={articleJsonLd}/>
 
       {/* ========================================
           BREADCRUMB JSON-LD

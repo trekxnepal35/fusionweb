@@ -1,6 +1,6 @@
 import Link from "next/link";
-import JsonLd from "../components/JsonLd";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
+import JsonLd from "../components/JsonLd";
 
 
 /*
@@ -359,10 +359,8 @@ export default async function BlogPage({
       ========================================= */}
 
       <JsonLd
-        data={itemListJsonLd}
-      />
-
-
+      data={itemListJsonLd}/>
+     
       {/* =========================================
           BREADCRUMB JSON-LD
       ========================================= */}
