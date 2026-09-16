@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
 import JsonLd from "@/app/components/JsonLd";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import FeedbackForm from "@/app/components/FeedbackForm";
