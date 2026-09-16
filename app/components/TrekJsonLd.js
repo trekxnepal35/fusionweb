@@ -1,5 +1,4 @@
 import JsonLd from "./JsonLd";
-
 export default function TrekJsonLd({
   trek,
   baseUrl,

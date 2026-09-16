@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-import JsonLd from "@/app/components/JsonLd";
+import JsonLd from "../components/JsonLd";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 
 
