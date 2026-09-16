@@ -1,13 +1,16 @@
-
 import { notFound } from "next/navigation";
 
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
+import Region from "@/models/Region";
 
 import Link from "next/link";
 
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
+
+import FeedbackList from "@/app/components/FeedbackList";
+import FeedbackForm from "@/app/components/FeedbackForm";
 
 
 /*
@@ -699,6 +702,25 @@ export default async function TourDetailPage({
             </aside>
 
           </div>
+
+
+          {/* =====================================
+              FEEDBACK / COMMENTS
+          ===================================== */}
+
+          <section className="mx-auto mt-16 max-w-5xl">
+
+            <FeedbackList
+              pageId={String(tour._id)}
+            />
+
+            <FeedbackForm
+              pageId={String(tour._id)}
+              pageTitle={tour.title}
+            />
+
+          </section>
+
 
         </section>
 

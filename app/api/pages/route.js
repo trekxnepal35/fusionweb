@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
@@ -15,6 +16,12 @@ function getAdminFromRequest(request) {
   return verifyAdminToken(token);
 }
 
+/*
+========================================
+GET PAGES
+========================================
+*/
+
 export async function GET(request) {
   try {
     await connectDB();
@@ -27,6 +34,35 @@ export async function GET(request) {
     const region = searchParams.get("region");
     const published = searchParams.get("published");
 
+    /*
+    ========================================
+    PAGINATION
+    ========================================
+    */
+
+    const requestedPage = Number(
+      searchParams.get("page") || 1
+    );
+
+    const requestedLimit = Number(
+      searchParams.get("limit") || 10
+    );
+
+    const page =
+      Number.isInteger(requestedPage) &&
+      requestedPage > 0
+        ? requestedPage
+        : 1;
+
+    const limit =
+      Number.isInteger(requestedLimit) &&
+      requestedLimit > 0 &&
+      requestedLimit <= 100
+        ? requestedLimit
+        : 10;
+
+    const skip = (page - 1) * limit;
+
     const filter = {};
 
     /*
@@ -36,12 +72,22 @@ export async function GET(request) {
     */
 
     if (id) {
-      const page = await Page.findById(id)
+      if (!mongoose.isValidObjectId(id)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid page ID",
+          },
+          { status: 400 }
+        );
+      }
+
+      const pageData = await Page.findById(id)
         .populate("pageType")
         .populate("region")
         .lean();
 
-      if (!page) {
+      if (!pageData) {
         return NextResponse.json(
           {
             success: false,
@@ -53,7 +99,7 @@ export async function GET(request) {
 
       return NextResponse.json({
         success: true,
-        data: page,
+        data: pageData,
       });
     }
 
@@ -64,7 +110,9 @@ export async function GET(request) {
     */
 
     if (slug) {
-      filter.slug = slug.toLowerCase();
+      filter.slug = String(slug)
+        .trim()
+        .toLowerCase();
     }
 
     /*
@@ -74,17 +122,46 @@ export async function GET(request) {
     */
 
     if (pageType) {
-      const pageTypeDoc = await PageType.findOne({
-        $or: [
-          { _id: pageType },
-          { slug: pageType.toLowerCase() },
-        ],
-      }).lean();
+      let pageTypeDoc = null;
+
+      /*
+      --------------------------------
+      PAGE TYPE CAN BE:
+      - ObjectId
+      - Slug such as "blog"
+      --------------------------------
+      */
+
+      if (mongoose.isValidObjectId(pageType)) {
+        pageTypeDoc = await PageType.findById(
+          pageType
+        ).lean();
+      } else {
+        pageTypeDoc = await PageType.findOne({
+          slug: String(pageType)
+            .trim()
+            .toLowerCase(),
+        }).lean();
+      }
+
+      /*
+      --------------------------------
+      PAGE TYPE NOT FOUND
+      --------------------------------
+      */
 
       if (!pageTypeDoc) {
         return NextResponse.json({
           success: true,
           data: [],
+          pagination: {
+            page,
+            limit,
+            totalItems: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPrevPage: page > 1,
+          },
         });
       }
 
@@ -98,17 +175,46 @@ export async function GET(request) {
     */
 
     if (region) {
-      const regionDoc = await Region.findOne({
-        $or: [
-          { _id: region },
-          { slug: region.toLowerCase() },
-        ],
-      }).lean();
+      let regionDoc = null;
+
+      /*
+      --------------------------------
+      REGION CAN BE:
+      - ObjectId
+      - Slug
+      --------------------------------
+      */
+
+      if (mongoose.isValidObjectId(region)) {
+        regionDoc = await Region.findById(
+          region
+        ).lean();
+      } else {
+        regionDoc = await Region.findOne({
+          slug: String(region)
+            .trim()
+            .toLowerCase(),
+        }).lean();
+      }
+
+      /*
+      --------------------------------
+      REGION NOT FOUND
+      --------------------------------
+      */
 
       if (!regionDoc) {
         return NextResponse.json({
           success: true,
           data: [],
+          pagination: {
+            page,
+            limit,
+            totalItems: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPrevPage: page > 1,
+          },
         });
       }
 
@@ -125,6 +231,27 @@ export async function GET(request) {
       filter.published = published === "true";
     }
 
+    /*
+    ================================
+    COUNT TOTAL PAGES
+    ================================
+    */
+
+    const totalItems = await Page.countDocuments(
+      filter
+    );
+
+    const totalPages =
+      totalItems === 0
+        ? 0
+        : Math.ceil(totalItems / limit);
+
+    /*
+    ================================
+    FIND PAGES
+    ================================
+    */
+
     const pages = await Page.find(filter)
       .populate("pageType")
       .populate("region")
@@ -132,28 +259,56 @@ export async function GET(request) {
         order: 1,
         createdAt: -1,
       })
+      .skip(skip)
+      .limit(limit)
       .lean();
+
+    /*
+    ================================
+    PAGINATION INFORMATION
+    ================================
+    */
+
+    const hasNextPage =
+      page < totalPages;
+
+    const hasPrevPage =
+      page > 1;
 
     return NextResponse.json({
       success: true,
+
       data: pages,
+
+      pagination: {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        hasNextPage,
+        hasPrevPage,
+      },
     });
 
-  }catch (error) {
+  } catch (error) {
 
-    console.error("POST /api/pages error:", error);
-  
+    console.error(
+      "GET /api/pages error:",
+      error
+    );
+
     /*
     ========================================
     MONGOOSE VALIDATION ERROR
     ========================================
     */
-  
+
     if (error.name === "ValidationError") {
-  
-      const messages = Object.values(error.errors)
-        .map((item) => item.message);
-  
+
+      const messages =
+        Object.values(error.errors)
+          .map((item) => item.message);
+
       return NextResponse.json(
         {
           success: false,
@@ -162,16 +317,35 @@ export async function GET(request) {
         { status: 400 }
       );
     }
-  
-  
+
+    /*
+    ========================================
+    CAST ERROR
+    ========================================
+    */
+
+    if (error.name === "CastError") {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            `Invalid ${
+              error.path || "value"
+            }: ${error.value}`,
+        },
+        { status: 400 }
+      );
+    }
+
     /*
     ========================================
     DUPLICATE KEY ERROR
     ========================================
     */
-  
+
     if (error.code === 11000) {
-  
+
       return NextResponse.json(
         {
           success: false,
@@ -181,14 +355,13 @@ export async function GET(request) {
         { status: 409 }
       );
     }
-  
-  
+
     /*
     ========================================
     OTHER SERVER ERRORS
     ========================================
     */
-  
+
     return NextResponse.json(
       {
         success: false,
@@ -224,7 +397,8 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized. Admin login required.",
+          message:
+            "Unauthorized. Admin login required.",
         },
         { status: 401 }
       );
@@ -276,12 +450,41 @@ export async function POST(request) {
     ========================================
     */
 
-    const pageType = await PageType.findOne({
-      $or: [
-        { _id: body.pageType },
-        { slug: String(body.pageType).toLowerCase() },
-      ],
-    });
+    let pageType = null;
+
+    /*
+    --------------------------------
+    PAGE TYPE CAN BE:
+    - ObjectId
+    - Slug such as "blog"
+    --------------------------------
+    */
+
+    if (
+      mongoose.isValidObjectId(
+        body.pageType
+      )
+    ) {
+
+      pageType = await PageType.findById(
+        body.pageType
+      );
+
+    } else {
+
+      pageType = await PageType.findOne({
+        slug: String(body.pageType)
+          .trim()
+          .toLowerCase(),
+      });
+
+    }
+
+    /*
+    --------------------------------
+    INVALID PAGE TYPE
+    --------------------------------
+    */
 
     if (!pageType) {
       return NextResponse.json(
@@ -303,13 +506,17 @@ export async function POST(request) {
       .trim()
       .toLowerCase();
 
-    const existingPage = await Page.findOne({ slug });
+    const existingPage =
+      await Page.findOne({
+        slug,
+      });
 
     if (existingPage) {
       return NextResponse.json(
         {
           success: false,
-          message: "A page with this slug already exists",
+          message:
+            "A page with this slug already exists",
         },
         { status: 409 }
       );
@@ -325,12 +532,41 @@ export async function POST(request) {
 
     if (body.region) {
 
-      const region = await Region.findOne({
-        $or: [
-          { _id: body.region },
-          { slug: String(body.region).toLowerCase() },
-        ],
-      });
+      let region = null;
+
+      /*
+      --------------------------------
+      REGION CAN BE:
+      - ObjectId
+      - Slug
+      --------------------------------
+      */
+
+      if (
+        mongoose.isValidObjectId(
+          body.region
+        )
+      ) {
+
+        region = await Region.findById(
+          body.region
+        );
+
+      } else {
+
+        region = await Region.findOne({
+          slug: String(body.region)
+            .trim()
+            .toLowerCase(),
+        });
+
+      }
+
+      /*
+      --------------------------------
+      INVALID REGION
+      --------------------------------
+      */
 
       if (!region) {
         return NextResponse.json(
@@ -352,44 +588,68 @@ export async function POST(request) {
     */
 
     const pricingType =
-      body.price?.pricingType === "pax_based"
+      body.price?.pricingType ===
+      "pax_based"
         ? "pax_based"
         : "fixed";
 
     let paxPrices = [];
 
-    if (pricingType === "pax_based") {
+    if (
+      pricingType === "pax_based"
+    ) {
 
-      if (!Array.isArray(body.price?.paxPrices)) {
+      if (
+        !Array.isArray(
+          body.price?.paxPrices
+        )
+      ) {
         return NextResponse.json(
           {
             success: false,
-            message: "PAX pricing tiers are required",
+            message:
+              "PAX pricing tiers are required",
           },
           { status: 400 }
         );
       }
 
-      paxPrices = body.price.paxPrices.map((tier) => ({
-        minPax: Number(tier.minPax),
-        maxPax:
-          tier.maxPax === "" ||
-          tier.maxPax === null ||
-          tier.maxPax === undefined
-            ? null
-            : Number(tier.maxPax),
-        pricePerPax: Number(tier.pricePerPax),
-      }));
+      paxPrices =
+        body.price.paxPrices.map(
+          (tier) => ({
+            minPax:
+              Number(tier.minPax),
+
+            maxPax:
+              tier.maxPax === "" ||
+              tier.maxPax === null ||
+              tier.maxPax === undefined
+                ? null
+                : Number(tier.maxPax),
+
+            pricePerPax:
+              Number(tier.pricePerPax),
+          })
+        );
     }
 
     const price = {
-      currency: body.price?.currency || "USD",
+
+      currency:
+        body.price?.currency ||
+        "USD",
+
       pricingType,
+
       amount:
         body.price?.amount === "" ||
-        body.price?.amount === undefined
+        body.price?.amount ===
+          undefined
           ? 0
-          : Number(body.price.amount),
+          : Number(
+              body.price.amount
+            ),
+
       paxPrices,
     };
 
@@ -405,38 +665,56 @@ export async function POST(request) {
 
       slug,
 
-      pageType: pageType._id,
+      pageType:
+        pageType._id,
 
-      region: regionId,
+      region:
+        regionId,
 
-      imageUrl: body.imageUrl || "",
+      imageUrl:
+        body.imageUrl || "",
 
-      description: body.description || "",
+      description:
+        body.description || "",
 
-      content: body.content || "",
+      content:
+        body.content || "",
 
       price,
 
-      trekDetails: body.trekDetails || {},
+      trekDetails:
+        body.trekDetails || {},
 
-      tourDetails: body.tourDetails || {},
+      tourDetails:
+        body.tourDetails || {},
 
-      itinerary: Array.isArray(body.itinerary)
-        ? body.itinerary
-        : [],
+      itinerary:
+        Array.isArray(
+          body.itinerary
+        )
+          ? body.itinerary
+          : [],
 
-      inclusions: Array.isArray(body.inclusions)
-        ? body.inclusions
-        : [],
+      inclusions:
+        Array.isArray(
+          body.inclusions
+        )
+          ? body.inclusions
+          : [],
 
-      exclusions: Array.isArray(body.exclusions)
-        ? body.exclusions
-        : [],
+      exclusions:
+        Array.isArray(
+          body.exclusions
+        )
+          ? body.exclusions
+          : [],
 
       importantInformation:
-        body.importantInformation || "",
+        body.importantInformation ||
+        "",
 
-      seo: body.seo || {},
+      seo:
+        body.seo || {},
 
       published:
         body.published === true,
@@ -448,7 +726,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: true,
-        message: "Page created successfully",
+        message:
+          "Page created successfully",
         data: page,
       },
       { status: 201 }
@@ -456,12 +735,96 @@ export async function POST(request) {
 
   } catch (error) {
 
-    console.error("POST /api/pages error:", error);
+    console.error(
+      "POST /api/pages error:",
+      error
+    );
+
+    /*
+    ========================================
+    MONGOOSE VALIDATION ERROR
+    ========================================
+    */
+
+    if (
+      error.name ===
+      "ValidationError"
+    ) {
+
+      const messages =
+        Object.values(
+          error.errors
+        ).map(
+          (item) =>
+            item.message
+        );
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            messages.join(", "),
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+    ========================================
+    CAST ERROR
+    ========================================
+    */
+
+    if (
+      error.name ===
+      "CastError"
+    ) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            `Invalid ${
+              error.path ||
+              "value"
+            }: ${error.value}`,
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+    ========================================
+    DUPLICATE KEY ERROR
+    ========================================
+    */
+
+    if (
+      error.code === 11000
+    ) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "A page with this value already exists.",
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+    ========================================
+    OTHER SERVER ERRORS
+    ========================================
+    */
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message:
+          error.message ||
+          "Internal server error",
       },
       { status: 500 }
     );

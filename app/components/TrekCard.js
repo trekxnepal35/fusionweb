@@ -1,14 +1,21 @@
+
 import Link from "next/link";
 
 export default function TrekCard({ trek }) {
   const details = trek.trekDetails || {};
+
+  // =========================================
+  // TREK DETAIL URL
+  // =========================================
+
+  const trekUrl = `/treks/trek/${trek.slug}`;
 
   return (
     <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
 
       {/* IMAGE */}
 
-      <Link href={`/${trek.slug}`}>
+      <Link href={trekUrl}>
         <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
 
           {trek.imageUrl ? (
@@ -42,7 +49,7 @@ export default function TrekCard({ trek }) {
           </p>
         )}
 
-        <Link href={`/${trek.slug}`}>
+        <Link href={trekUrl}>
           <h3 className="text-xl font-bold text-gray-900 transition hover:text-blue-600">
             {trek.title}
           </h3>
@@ -87,7 +94,7 @@ export default function TrekCard({ trek }) {
         {/* BUTTON */}
 
         <Link
-          href={`/${trek.slug}`}
+          href={trekUrl}
           className="mt-5 block rounded-xl bg-gray-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-600"
         >
           Explore Trek

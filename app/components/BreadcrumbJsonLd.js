@@ -1,6 +1,5 @@
 
-import JsonLd from './JsonLD';
-
+import JsonLd from './JsonLd';
 
 export default function BreadcrumbJsonLd({
   items,

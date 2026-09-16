@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -25,22 +26,29 @@ setLoading(true);
 setError("");
 
 
-    const response = await fetch("/api/page-types", {
-      cache: "no-store",
-    });
+    const response = await fetch(
+      "/api/page-types",
+      {
+        cache: "no-store",
+      }
+    );
 
     const result = await response.json();
 
     if (!response.ok || !result.success) {
       throw new Error(
-        result.message || "Failed to load page types"
+        result.message ||
+          "Failed to load page types"
       );
     }
 
-    const pageTypes = result.data || [];
+    const pageTypes = Array.isArray(result.data)
+      ? result.data
+      : [];
 
     const blogType = pageTypes.find(
-      (type) => type.slug === "blog"
+      (type) =>
+        type.slug?.toLowerCase() === "blog"
     );
 
     if (!blogType) {
@@ -51,10 +59,14 @@ setError("");
 
     setBlogPageType(blogType);
   } catch (error) {
-    console.error("Fetch Blog Page Type error:", error);
+    console.error(
+      "Fetch Blog Page Type error:",
+      error
+    );
 
     setError(
-      error.message || "Failed to load Blog Page Type"
+      error.message ||
+        "Failed to load Blog Page Type"
     );
   } finally {
     setLoading(false);
@@ -73,10 +85,18 @@ fetchBlogPageType();
 */
 
 const handleSubmit = async (formData) => {
-try {
-setSaving(true);
-setError("");
+if (!blogPageType?._id) {
+setError(
+"Blog Page Type is not available. Please try again."
+);
 
+
+  return;
+}
+
+try {
+  setSaving(true);
+  setError("");
 
   /*
   =========================================
@@ -86,28 +106,40 @@ setError("");
 
   const data = {
     ...formData,
+
+    /*
+    Always use the Blog Page Type
+    loaded from the database.
+    */
+
     pageType: blogPageType._id,
 
     /*
-    Blog posts do not belong to a trek region.
+    Region is optional for Blog posts.
+    If no region was selected, send null.
     */
 
-    region: formData.region || null,
+    region:
+      formData.region || null,
   };
 
-  const response = await fetch("/api/pages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  const response = await fetch(
+    "/api/pages",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }
+  );
 
   const result = await response.json();
 
   if (!response.ok || !result.success) {
     throw new Error(
-      result.message || "Failed to create blog post"
+      result.message ||
+        "Failed to create blog post"
     );
   }
 
@@ -120,10 +152,14 @@ setError("");
   router.push("/admin/blog");
   router.refresh();
 } catch (error) {
-  console.error("Create Blog error:", error);
+  console.error(
+    "Create Blog error:",
+    error
+  );
 
   setError(
-    error.message || "Failed to create blog post"
+    error.message ||
+      "Failed to create blog post"
   );
 } finally {
   setSaving(false);
@@ -144,15 +180,20 @@ Loading Blog Page Type... </p> </div> </div>
 );
 }
 
- /*
+/*
 
 # ERROR
 
 */
 
 if (error && !blogPageType) {
-return ( <div className="space-y-4 p-6"> <div> <h1 className="text-3xl font-bold text-gray-900">
-Create Blog </h1>
+return ( <div className="space-y-4 p-6">
+
+
+    <div>
+      <h1 className="text-3xl font-bold text-gray-900">
+        Create Blog
+      </h1>
 
       <p className="mt-1 text-gray-500">
         Create a new blog post.
@@ -165,28 +206,31 @@ Create Blog </h1>
 
     <button
       type="button"
-      onClick={() => router.push("/admin/page-types")}
+      onClick={() =>
+        router.push("/admin/page-types")
+      }
       className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
     >
       Go to Page Types
     </button>
+
   </div>
 );
 
 
 }
-
- /*
+/*
 
 # PAGE
 
 */
 
 return ( <div className="space-y-6 p-6">
-{/* =========================================
-HEADER
-========================================= */}
 
+
+  {/* =========================================
+      HEADER
+  ========================================= */}
 
   <div>
     <h1 className="text-3xl font-bold text-gray-900">
@@ -215,6 +259,7 @@ HEADER
   <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
     <p className="text-sm text-blue-800">
       Page Type:
+
       <span className="ml-2 font-semibold">
         {blogPageType.name}
       </span>
@@ -228,8 +273,15 @@ HEADER
   <PageForm
     initialData={{
       pageType: blogPageType._id,
+
+      /*
+      Blog region is optional.
+      */
+
       region: "",
+
       published: false,
+
       price: {
         currency: "USD",
         pricingType: "fixed",
@@ -241,6 +293,7 @@ HEADER
     loading={saving}
     onSubmit={handleSubmit}
   />
+
 </div>
 
 

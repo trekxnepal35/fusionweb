@@ -1,5 +1,4 @@
-import JsonLd from './JsonLD';
-
+import JsonLd from "./JsonLd";
 
 export default function TrekJsonLd({
   trek,
@@ -100,9 +99,5 @@ export default function TrekJsonLd({
       : {}),
 
   };
-
-
-
-
   return <JsonLd data={schema} />;
-}
+  }

@@ -1,8 +1,8 @@
 
 import Link from "next/link";
-import TrekJsonLd from "../components/TrekJsonLd";
 import BreadcrumbJsonLd from '../components/BreadcrumbJsonLd'
 import Breadcrumbs from "@/app/components/Breadcrumbs";
+import TrekJsonLd from "../components/TrekJsonLd";
 // SEO
 export async function generateMetadata({ params }) {
 
@@ -1064,3 +1064,4 @@ function TourSideInfo({ label, value }) {
     </div>
   );
 }
+
