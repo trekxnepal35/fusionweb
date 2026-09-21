@@ -553,7 +553,7 @@ export default async function TourDetailPage({
 
                               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
 
-                                {day.day}
+                                Day:{day.day}
 
                               </div>
 

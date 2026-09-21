@@ -670,11 +670,6 @@ export default async function TrekDetailPage({
 
                 <section id="excluded" className="mt-12">
 
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    What's Not Included
-
-                  </h2>
                 <SectionCollapse title="What`s Not Included">
                   <hr />
 

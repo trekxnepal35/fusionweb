@@ -78,53 +78,64 @@ export default function SectionNavigation({
   =========================================
   */
 
-  useEffect(() => {
-    const elements = sections
-      .map((section) =>
-        document.getElementById(section.id)
-      )
-      .filter(Boolean);
+  /*
+=========================================
+ACTIVE SECTION
+=========================================
+*/
 
-    if (!elements.length) {
-      return;
+useEffect(() => {
+
+  function updateActiveSection() {
+
+    const scrollPosition =
+      window.scrollY + 180;
+
+    let currentSection =
+      sections[0]?.id;
+
+    for (const section of sections) {
+
+      const element =
+        document.getElementById(
+          section.id
+        );
+
+      if (!element) {
+        continue;
+      }
+
+      if (
+        element.offsetTop <=
+        scrollPosition
+      ) {
+        currentSection =
+          section.id;
+      }
     }
 
-    const observer =
-      new IntersectionObserver(
-        (entries) => {
-          const visibleEntries = entries
-            .filter(
-              (entry) =>
-                entry.isIntersecting
-            )
-            .sort(
-              (a, b) =>
-                a.boundingClientRect.top -
-                b.boundingClientRect.top
-            );
+    setActiveSection(
+      currentSection
+    );
+  }
 
-          if (visibleEntries.length > 0) {
-            setActiveSection(
-              visibleEntries[0].target.id
-            );
-          }
-        },
-        {
-          root: null,
-          rootMargin:
-            "-120px 0px -55% 0px",
-          threshold: 0,
-        }
-      );
+  updateActiveSection();
 
-    elements.forEach((element) => {
-      observer.observe(element);
-    });
+  window.addEventListener(
+    "scroll",
+    updateActiveSection
+  );
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [sections]);
+  return () => {
+
+    window.removeEventListener(
+      "scroll",
+      updateActiveSection
+    );
+
+  };
+
+}, [sections]);
 
   /*
   =========================================
