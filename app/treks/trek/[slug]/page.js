@@ -9,6 +9,10 @@ import TrekJsonLd from "@/app/components/TrekJsonLd";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import FeedbackList from "@/app/components/FeedbackList";
 import FeedbackForm from "@/app/components/FeedbackForm";
+import ImageGallery from "@/app/components/ImageGallery";
+import SectionNavigation from "@/app/components/SectionNavigation";
+import SectionCollapse from "@/app/components/SectionCollapse";
+
 
 
 /*
@@ -106,21 +110,21 @@ export async function generateMetadata({ params }) {
     alternates:
       trek.seo?.canonicalUrl
         ? {
-            canonical:
-              trek.seo.canonicalUrl,
-          }
+          canonical:
+            trek.seo.canonicalUrl,
+        }
         : undefined,
 
     robots:
       trek.seo?.noIndex
         ? {
-            index: false,
-            follow: false,
-          }
+          index: false,
+          follow: false,
+        }
         : {
-            index: true,
-            follow: true,
-          },
+          index: true,
+          follow: true,
+        },
 
     openGraph: {
 
@@ -230,11 +234,11 @@ export default async function TrekDetailPage({
 
     ...(trek.region
       ? [
-          {
-            name: trek.region.name,
-            url: `/treks/${trek.region.slug}`,
-          },
-        ]
+        {
+          name: trek.region.name,
+          url: `/treks/${trek.region.slug}`,
+        },
+      ]
       : []),
 
     {
@@ -243,6 +247,12 @@ export default async function TrekDetailPage({
     },
   ];
 
+  const galleryImages = Array.isArray(trek.images)
+  ? trek.images.map((image) => ({
+      url: image.url || "",
+      alt: image.alt || "",
+    }))
+  : [];
 
   return (
 
@@ -263,23 +273,11 @@ export default async function TrekDetailPage({
 
         <section className="relative bg-gray-900">
 
-          {trek.imageUrl ? (
-
-            <img
-              src={trek.imageUrl}
-              alt={trek.title}
-              className="h-[420px] w-full object-cover opacity-70"
-            />
-
-          ) : (
-
-            <div className="h-[420px] bg-gray-800" />
-
-          )}
-
-
-          <div className="absolute inset-0 bg-black/40" />
-
+          <ImageGallery
+            images={galleryImages}
+            fallbackImage={trek.imageUrl}
+            fallbackAlt={trek.title}
+          />
 
           <div className="absolute inset-0 flex items-end">
 
@@ -290,43 +288,28 @@ export default async function TrekDetailPage({
                 <div className="mb-4 flex flex-wrap gap-2">
 
                   <span className="rounded-full bg-white/20 px-4 py-2 text-sm text-white backdrop-blur">
-
                     Trekking
-
                   </span>
 
-
                   {trek.region && (
-
                     <Link
                       href={`/treks/${trek.region.slug}`}
                       className="rounded-full bg-white/20 px-4 py-2 text-sm text-white backdrop-blur hover:bg-white/30"
                     >
-
                       {trek.region.name}
-
                     </Link>
-
                   )}
 
                 </div>
 
-
                 <h1 className="text-4xl font-bold text-white md:text-6xl">
-
                   {trek.title}
-
                 </h1>
 
-
                 {trek.description && (
-
                   <p className="mt-5 max-w-3xl text-lg text-white/90">
-
                     {trek.description}
-
                   </p>
-
                 )}
 
               </div>
@@ -336,6 +319,61 @@ export default async function TrekDetailPage({
           </div>
 
         </section>
+
+
+        {/* =====================================
+            Section Navigation
+        ===================================== */}
+
+        <SectionNavigation
+          sections={[
+            {
+              id: "overview",
+              label: "Overview",
+              icon: "📖",
+            },
+            {
+              id: "highlight",
+              label: "Highlight",
+              icon: "⭐",
+            },
+            {
+              id: "itinerary",
+              label: "Itinerary",
+              icon: "🗓️",
+            },
+            {
+              id: "trek-information",
+              label: "Trek Information",
+              icon: "ℹ️",
+            },
+            {
+              id: "included",
+              label: "What's Included",
+              icon: "✓",
+            },
+            {
+              id: "excluded",
+              label: "What's Not Included",
+              icon: "×",
+            },
+            {
+              id: "important-information",
+              label: "Important Information",
+              icon: "⚠️",
+            },
+            {
+              id: "map-faq",
+              label: "Map & FAQ",
+              icon: "❓",
+            },
+            {
+              id: "reviews",
+              label: "Review",
+              icon: "💬",
+            },
+          ]}
+        />
 
 
         {/* =====================================
@@ -359,25 +397,28 @@ export default async function TrekDetailPage({
               ================================= */}
 
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-
                 <InfoCard
                   label="Duration"
                   value={details.duration}
+                  icon="🕒"
                 />
 
                 <InfoCard
                   label="Difficulty"
                   value={details.difficulty}
+                  icon="⛰️"
                 />
 
                 <InfoCard
                   label="Max Altitude"
                   value={details.maxAltitude}
+                  icon="🏔️"
                 />
 
                 <InfoCard
                   label="Best Season"
                   value={details.bestSeason}
+                  icon="☀️"
                 />
 
               </div>
@@ -388,21 +429,38 @@ export default async function TrekDetailPage({
               ================================= */}
 
               {trek.content && (
-
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold text-gray-900">
-
-                    About {trek.title}
-
-                  </h2>
-
-
-                  <div className="whitespace-pre-line leading-8 text-gray-700">
-
+                <section id="overview" className="mt-12 "> 
+                             
+                  <SectionCollapse title="Overview" >
+                  <hr/>
+                    
+                  <div                   
+                    className="whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
+                  >
                     {trek.content}
+                  </div>
+                  </SectionCollapse>
+                </section>
+              )}
+              {/* ================================
+                  Highlight
+              ================================= */}
+
+              {trek.highlight && (
+
+                <section id="highlight" className="mt-12">
+
+                <SectionCollapse title="Trip Highlights">
+                  <hr />
+
+                  <div
+                  className="whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
+                  >
+
+                    {trek.highlight}
 
                   </div>
+                  </SectionCollapse>
 
                 </section>
 
@@ -413,58 +471,64 @@ export default async function TrekDetailPage({
                   TREK DETAILS
               ================================= */}
 
-              <section className="mt-12">
-
-                <h2 className="mb-6 text-3xl font-bold">
-
-                  Trek Information
-
-                </h2>
+              <section id="trek-information" className="mt-12">
 
 
-                <div className="grid gap-4 md:grid-cols-2">
+              <SectionCollapse title="Trek Information">
+              <hr />
+
+                <div className="grid gap-4 md:grid-cols-2 transition-all duration-300">
 
                   <DetailRow
                     label="Starting Point"
                     value={details.startingPoint}
+                    icon="📍"
                   />
 
                   <DetailRow
                     label="Ending Point"
                     value={details.endingPoint}
+                    icon="🏁"
                   />
 
                   <DetailRow
                     label="Accommodation"
                     value={details.accommodation}
+                    icon="🛏️"
                   />
 
                   <DetailRow
                     label="Meals"
                     value={details.meals}
+                    icon="🍽️"
                   />
 
                   <DetailRow
                     label="Group Size"
                     value={details.groupSize}
+                    icon="👥"
                   />
 
                   <DetailRow
                     label="Permits"
                     value={details.permits}
+                    icon="🎫"
                   />
 
                   <DetailRow
                     label="Transportation"
                     value={details.transportation}
+                    icon="🚐"
                   />
 
                   <DetailRow
                     label="Guide"
                     value={details.guide}
+                    icon="🧭"
                   />
 
                 </div>
+                </SectionCollapse>
 
               </section>
 
@@ -475,15 +539,9 @@ export default async function TrekDetailPage({
 
               {trek.itinerary?.length > 0 && (
 
-                <section className="mt-12">
-
-                  <h2 className="mb-6 text-3xl font-bold">
-
-                    Itinerary
-
-                  </h2>
-
-
+                <section id="itinerary" className="mt-12">
+                  <SectionCollapse title="Itinerary">
+                    
                   <div className="space-y-5">
 
                     {trek.itinerary.map(
@@ -496,22 +554,17 @@ export default async function TrekDetailPage({
 
                           <div className="flex gap-5">
 
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
 
-                              {day.day}
+                              Day:{day.day}
 
                             </div>
 
 
                             <div className="flex-1">
 
-                              <h3 className="text-xl font-bold">
 
-                                {day.title}
-
-                              </h3>
-
-
+                              <SectionCollapse title={day.title}>
                               {day.description && (
 
                                 <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
@@ -526,30 +579,31 @@ export default async function TrekDetailPage({
                               <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
 
                                 {day.altitude && (
-                                  <span>
+                                  <span>🏔️
                                     Altitude: {day.altitude}
                                   </span>
                                 )}
 
                                 {day.walkingHours && (
-                                  <span>
+                                  <span>🚶
                                     Walking: {day.walkingHours}
                                   </span>
                                 )}
 
                                 {day.accommodation && (
-                                  <span>
+                                  <span>🛏️
                                     Stay: {day.accommodation}
                                   </span>
                                 )}
 
                                 {day.meal && (
-                                  <span>
+                                  <span>🍽️
                                     Meal: {day.meal}
                                   </span>
                                 )}
 
                               </div>
+                              </SectionCollapse>
 
                             </div>
 
@@ -561,6 +615,7 @@ export default async function TrekDetailPage({
                     )}
 
                   </div>
+                  </SectionCollapse>
 
                 </section>
 
@@ -573,16 +628,12 @@ export default async function TrekDetailPage({
 
               {trek.inclusions?.length > 0 && (
 
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    What's Included
-
-                  </h2>
+                <section id="included" className="mt-12">
 
 
-                  <ul className="space-y-3">
+                <SectionCollapse title = "What`s Included">
+                  <hr />
+                  <ul  className="space-y-3 transition-all duration-300">
 
                     {trek.inclusions.map(
                       (item, index) => (
@@ -604,6 +655,7 @@ export default async function TrekDetailPage({
                     )}
 
                   </ul>
+                  </SectionCollapse>
 
                 </section>
 
@@ -616,16 +668,17 @@ export default async function TrekDetailPage({
 
               {trek.exclusions?.length > 0 && (
 
-                <section className="mt-12">
+                <section id="excluded" className="mt-12">
 
                   <h2 className="mb-5 text-3xl font-bold">
 
                     What's Not Included
 
                   </h2>
+                <SectionCollapse title="What`s Not Included">
+                  <hr />
 
-
-                  <ul className="space-y-3">
+                  <ul  className="space-y-3 transition-all duration-300">
 
                     {trek.exclusions.map(
                       (item, index) => (
@@ -647,6 +700,7 @@ export default async function TrekDetailPage({
                     )}
 
                   </ul>
+                  </SectionCollapse>
 
                 </section>
 
@@ -659,20 +713,20 @@ export default async function TrekDetailPage({
 
               {trek.importantInformation && (
 
-                <section className="mt-12 rounded-xl bg-gray-50 p-6">
-
-                  <h2 className="mb-4 text-2xl font-bold">
-
-                    Important Information
-
-                  </h2>
+                <section id="important-information" className="mt-12 rounded-xl bg-gray-50 p-6">
 
 
-                  <p className="whitespace-pre-line leading-7 text-gray-700">
+                  <SectionCollapse title="Important Information">
+                    <hr />
+
+
+
+                  <p className="whitespace-pre-line leading-7 text-gray-700 transition-all duration-300">
 
                     {trek.importantInformation}
 
                   </p>
+                  </SectionCollapse>
 
                 </section>
 
@@ -787,11 +841,10 @@ export default async function TrekDetailPage({
 
                 <Link
                   href={`/enquiry?experienceId=${trek._id}&experienceType=${trek.pageType.slug}`}
-                  className={`block rounded-lg border border-gray-900 px-6 py-4 text-center font-semibold text-gray-900 transition hover:bg-gray-100 ${
-                    isBookable
-                      ? "mt-3"
-                      : "mt-8"
-                  }`}
+                  className={`block rounded-lg border border-gray-900 px-6 py-4 text-center font-semibold text-gray-900 transition hover:bg-gray-100 ${isBookable
+                    ? "mt-3"
+                    : "mt-8"
+                    }`}
                 >
 
                   Make an Enquiry
@@ -812,21 +865,135 @@ export default async function TrekDetailPage({
 
           </div>
 
+          {/* =====================================
+          FREQUENTLY ASKED QUESTIONS
+         ===================================== */}
+
+          {Array.isArray(trek.faqs) &&
+            trek.faqs.length > 0 && (
+
+              <section id="map-faq" className="mx-auto mt-16 max-w-7xl px-6">
+                <SectionCollapse title="Map and FAQ">
+                  <hr />
+                <div className="grid gap-10 lg:grid-cols-3">
+
+                  {/* FAQ IMAGE */}
+
+                  {trek.faqImageUrl && (
+
+                    <div className="lg:col-span-1">
+
+                      <div  className="sticky top-24 overflow-hidden rounded-2xl transition-all duration-300">
+
+                        <img
+                          src={trek.faqImageUrl}
+                          alt={`${trek.title} FAQ`}
+                          className="h-[420px] w-full object-cover"
+                        />
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+                  {/* FAQ CONTENT */}
+
+                  <div
+                    className={
+                      trek.faqImageUrl
+                        ? "lg:col-span-2"
+                        : "lg:col-span-3"
+                    }
+                  >
+
+                    <div className="mb-8">
+
+                      <p className="text-sm font-semibold uppercase tracking-wider text-emerald-600">
+                        Frequently Asked Questions
+                      </p>
+
+                      <h2 className="mt-2 text-3xl font-bold text-gray-900">
+                        Questions About {trek.title}
+                      </h2>
+
+                      <p className="mt-3 text-gray-600">
+                        Find answers to common questions about this trek.
+                      </p>
+
+                    </div>
+
+                    <div className="space-y-4">
+
+                      {trek.faqs.map(
+                        (faq, index) => (
+
+                          <details
+                            key={index}
+                            className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                          >
+
+                            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+
+                              <span>
+                                {faq.question}
+                              </span>
+
+                              <span className="text-2xl text-emerald-600 transition-transform duration-300 group-open:rotate-45">
+                                +
+                              </span>
+
+                            </summary>
+
+                            {faq.answer && (
+
+                              <div className="mt-4 border-t border-gray-100 pt-4">
+
+                                <p className="leading-7 text-gray-600">
+                                  {faq.answer}
+                                </p>
+
+                              </div>
+
+                            )}
+
+                          </details>
+
+                        )
+                      )}
+
+                    </div>
+
+                  </div>
+
+                </div>
+                </SectionCollapse>
+
+              </section>
+
+            )}
 
           {/* =====================================
               FEEDBACK / COMMENTS
           ===================================== */}
 
-          <section className="mx-auto mt-16 max-w-5xl">
-
+          <section  id="reviews" className="mx-auto mt-16 max-w-5xl transition-all duration-300">
+          <SectionCollapse title="Reviews">
+            <hr />
             <FeedbackList
               pageId={String(trek._id)}
             />
+             </SectionCollapse>
+
+             <SectionCollapse title="Review Form">
+              <hr />
 
             <FeedbackForm
               pageId={String(trek._id)}
               pageTitle={trek.title}
             />
+            </SectionCollapse>
+           
 
           </section>
 
@@ -848,6 +1015,7 @@ INFO CARD
 function InfoCard({
   label,
   value,
+  icon,
 }) {
 
   if (!value) {
@@ -859,18 +1027,25 @@ function InfoCard({
 
     <div className="rounded-xl bg-gray-50 p-5">
 
-      <p className="text-sm text-gray-500">
+      <div className="flex items-center gap-3">
 
-        {label}
+        <span className="flex h-1 w-1 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+          {icon}
+        </span>
 
-      </p>
+        <div>
 
+          <p className="text-sm text-gray-500">
+            {label}
+          </p>
 
-      <p className="mt-2 font-semibold text-gray-900">
+          <p className="mt-1 font-semibold text-gray-900">
+            {value}
+          </p>
 
-        {value}
+        </div>
 
-      </p>
+      </div>
 
     </div>
 
@@ -888,6 +1063,7 @@ DETAIL ROW
 function DetailRow({
   label,
   value,
+  icon,
 }) {
 
   if (!value) {
@@ -896,23 +1072,53 @@ function DetailRow({
 
 
   return (
+  // Old format 
+    // <div className="rounded-lg border p-4">
 
-    <div className="rounded-lg border p-4">
+    //   <div className="flex items-center gap-3">
 
-      <p className="text-sm text-gray-500">
+    //     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-50 text-xl">
+    //       {icon}
+    //     </span>
 
-        {label}
+    //     <div>
 
-      </p>
+    //       <p className="text-sm text-gray-500">
+    //         {label}
+    //       </p>
 
+    //       <p className="mt-1 font-medium text-gray-900">
+    //         {value}
+    //       </p>
 
-      <p className="mt-1 font-medium">
+    //     </div>
 
-        {value}
+    //   </div>
 
-      </p>
+    // </div>
+    <div className="rounded-xl bg-gray-50 p-5">
+
+    <div className="flex items-center gap-3">
+
+      <span className="flex h-1 w-1 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+        {icon}
+      </span>
+
+      <div>
+
+        <p className="text-sm text-gray-500">
+          {label}
+        </p>
+
+        <p className="mt-1 font-semibold text-gray-900">
+          {value}
+        </p>
+
+      </div>
 
     </div>
+
+  </div>
 
   );
 

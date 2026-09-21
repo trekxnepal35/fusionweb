@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation";
 
 import connectDB from "@/lib/mongodb";
@@ -7,10 +8,12 @@ import Region from "@/models/Region";
 
 import Link from "next/link";
 
+import ImageGallery from "@/app/components/ImageGallery";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
-
 import FeedbackList from "@/app/components/FeedbackList";
 import FeedbackForm from "@/app/components/FeedbackForm";
+import SectionNavigation from "@/app/components/SectionNavigation";
+import SectionCollapse from "@/app/components/SectionCollapse";
 
 
 /*
@@ -23,6 +26,13 @@ async function getTour(slug) {
 
   await connectDB();
 
+
+  /*
+  ========================================
+  FIND TOUR PAGE TYPE
+  ========================================
+  */
+
   const tourType =
     await PageType.findOne({
       slug: "tour",
@@ -34,6 +44,12 @@ async function getTour(slug) {
     return null;
   }
 
+
+  /*
+  ========================================
+  FIND TOUR
+  ========================================
+  */
 
   const tour =
     await Page.findOne({
@@ -152,6 +168,12 @@ export default async function TourDetailPage({
     await getTour(slug);
 
 
+  /*
+  ========================================
+  404
+  ========================================
+  */
+
   if (!tour) {
     notFound();
   }
@@ -223,6 +245,24 @@ export default async function TourDetailPage({
   ];
 
 
+  /*
+  ========================================
+  GalleryImages  ImagesGallery
+  ========================================
+  */
+  const galleryImages = Array.isArray(tour.images)
+    ? tour.images.map((image) => ({
+      url: image.url || "",
+      alt: image.alt || "",
+    }))
+    : [];
+
+  /*
+  ========================================
+  PAGE
+  ========================================
+  */
+
   return (
 
     <>
@@ -241,23 +281,23 @@ export default async function TourDetailPage({
 
         <section className="relative bg-gray-900">
 
-          {tour.imageUrl ? (
+          {/* =====================================
+              IMAGE GALLERY
+          ===================================== */}
 
-            <img
-              src={tour.imageUrl}
-              alt={tour.title}
-              className="h-[420px] w-full object-cover opacity-70"
-            />
-
-          ) : (
-
-            <div className="h-[420px] bg-gray-800" />
-
-          )}
+          <ImageGallery
+            images={galleryImages}
+            fallbackImage={tour.imageUrl || ""}
+            fallbackAlt={tour.title}
+          />
 
 
-          <div className="absolute inset-0 bg-black/40" />
 
+
+
+          {/* =====================================
+              HERO CONTENT
+          ===================================== */}
 
           <div className="absolute inset-0 flex items-end">
 
@@ -292,7 +332,58 @@ export default async function TourDetailPage({
           </div>
 
         </section>
-
+        {/* =====================================
+              Navbar/Page Menus display
+          ===================================== */}
+        <SectionNavigation
+          sections={[
+            {
+              id: "overview",
+              label: "Overview",
+              icon: "📖",
+            },
+            {
+              id: "highlight",
+              label: "Highlight",
+              icon: "⭐",
+            },
+            {
+              id: "itinerary",
+              label: "Itinerary",
+              icon: "🗓️",
+            },
+            {
+              id: "tour-information",
+              label: "Tour Information",
+              icon: "ℹ️",
+            },
+            {
+              id: "included",
+              label: "What's Included",
+              icon: "✓",
+            },
+            {
+              id: "excluded",
+              label: "What's Not Included",
+              icon: "×",
+            },
+            {
+              id: "important-information",
+              label: "Important Information",
+              icon: "⚠️",
+            },
+            {
+              id: "map-faq",
+              label: "Map & FAQ",
+              icon: "❓",
+            },
+            {
+              id: "reviews",
+              label: "Review",
+              icon: "💬",
+            },
+          ]}
+        />
 
         {/* =====================================
             CONTENT
@@ -309,44 +400,33 @@ export default async function TourDetailPage({
 
             <div className="lg:col-span-2">
 
-
               {/* ================================
-                  TOUR INFORMATION
+                  QUICK INFORMATION
               ================================= */}
 
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <InfoCard
                   label="Duration"
                   value={details.duration}
+                  icon="🕒"
                 />
-
-                <InfoCard
-                  label="Tour Type"
-                  value={details.tourType}
-                />
-
                 <InfoCard
                   label="Destination"
                   value={details.destination}
+                  icon="📍"
                 />
 
                 <InfoCard
                   label="Best Season"
                   value={details.bestSeason}
-                />
-
-                <InfoCard
-                  label="Group Size"
-                  value={details.groupSize}
-                />
-
-                <InfoCard
-                  label="Accommodation"
-                  value={details.accommodation}
+                  icon="☀️"
                 />
 
               </div>
+
+
+
+
 
 
               {/* ================================
@@ -355,20 +435,17 @@ export default async function TourDetailPage({
 
               {tour.content && (
 
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    About {tour.title}
-
-                  </h2>
+                <section id="overview" className="mt-12">
+                  <SectionCollapse title="Overview">
+                    <hr />
 
 
-                  <div className="whitespace-pre-line leading-8 text-gray-700">
+                    <div className="whitespace-pre-line leading-8 text-gray-700">
 
-                    {tour.content}
+                      {tour.content}
 
-                  </div>
+                    </div>
+                  </SectionCollapse>
 
                 </section>
 
@@ -376,29 +453,79 @@ export default async function TourDetailPage({
 
 
               {/* ================================
-                  TRANSPORTATION
+                 Highlight
               ================================= */}
+              {tour.highlight && (
 
-              {details.transportation && (
-
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    Transportation
-
-                  </h2>
+                <section id="highlight" className="mt-12">
 
 
-                  <p className="leading-8 text-gray-700">
+                  <SectionCollapse title="Highlight">
+                    <hr />
+                    <div className="whitespace-pre-line leading-8 text-gray-700">
 
-                    {details.transportation}
+                      {tour.highlight}
 
-                  </p>
+                    </div>
+                  </SectionCollapse>
 
                 </section>
 
               )}
+              {/* ================================
+                  TOUR Information
+              ================================= */}
+              <SectionCollapse title="Tour Information">
+                <div id="tour-information" className="grid grid-cols-2 gap-4 md:grid-cols-3">
+
+
+                  <InfoCard
+                    label="Duration"
+                    value={details.duration}
+                    icon="🕒"
+                  />
+
+                  <InfoCard
+                    label="Tour Type"
+                    value={details.tourType}
+                    icon="🧳"
+                  />
+
+                  <InfoCard
+                    label="Destination"
+                    value={details.destination}
+                    icon="📍"
+                  />
+
+                  <InfoCard
+                    label="Best Season"
+                    value={details.bestSeason}
+                    icon="☀️"
+                  />
+
+                  <InfoCard
+                    label="Group Size"
+                    value={details.groupSize}
+                    icon="👥"
+                  />
+
+                  <InfoCard
+                    label="Accommodation"
+                    value={details.accommodation}
+                    icon="🛏️"
+                  />
+
+                  <InfoCard
+                    label="Transportation"
+                    value={details.transportation}
+                    icon="🚐"
+                  />
+
+
+                </div>
+              </SectionCollapse>
+
+
 
 
               {/* ================================
@@ -407,63 +534,86 @@ export default async function TourDetailPage({
 
               {tour.itinerary?.length > 0 && (
 
-                <section className="mt-12">
+                <section id="itinerary" className="mt-12">
 
-                  <h2 className="mb-6 text-3xl font-bold">
-
-                    Itinerary
-
-                  </h2>
+                  <SectionCollapse title="Itinerary">
 
 
-                  <div className="space-y-5">
+                    <div className="space-y-5">
 
-                    {tour.itinerary.map(
-                      (day, index) => (
+                      {tour.itinerary.map(
+                        (day, index) => (
 
-                        <div
-                          key={index}
-                          className="rounded-xl border p-6 shadow-sm"
-                        >
+                          <div
+                            key={index}
+                            className="rounded-xl border p-6 shadow-sm"
+                          >
 
-                          <div className="flex gap-5">
+                            <div className="flex gap-5">
 
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
 
-                              {day.day}
+                                {day.day}
 
-                            </div>
+                              </div>
+
+                              <SectionCollapse title={day.title}>
+                              <div>    
+                              
+
+                                {day.description && (
+
+                                  <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+
+                                    {day.description}
+
+                                  </p>
+
+                                )}
 
 
-                            <div>
+                                <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
 
-                              <h3 className="text-xl font-bold">
+                                  {day.altitude && (
+                                    <span>🏔️
+                                      Altitude: {day.altitude}
+                                    </span>
+                                  )}
 
-                                {day.title}
+                                  {day.walkingHours && (
+                                    <span>🚶
+                                      Travel Hours: {day.walkingHours}
+                                    </span>
+                                  )}
 
-                              </h3>
+                                  {day.accommodation && (
+                                    <span>🛏️
+                                      Stay: {day.accommodation}
+                                    </span>
+                                  )}
 
+                                  {day.meal && (
+                                    <span>🍽️
+                                      Meal: {day.meal}
+                                    </span>
+                                  )}
 
-                              {day.description && (
+                                </div>
 
-                                <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+                                
 
-                                  {day.description}
-
-                                </p>
-
-                              )}
+                              </div>
+                              </SectionCollapse>
 
                             </div>
 
                           </div>
 
-                        </div>
+                        )
+                      )}
 
-                      )
-                    )}
-
-                  </div>
+                    </div>
+                  </SectionCollapse>
 
                 </section>
 
@@ -476,37 +626,34 @@ export default async function TourDetailPage({
 
               {tour.inclusions?.length > 0 && (
 
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    What's Included
-
-                  </h2>
+                <section id="included" className="mt-12">
 
 
-                  <ul className="space-y-3">
+                  <SectionCollapse title="What`s Included">
+                    <hr />
+                    <ul className="space-y-3">
 
-                    {tour.inclusions.map(
-                      (item, index) => (
+                      {tour.inclusions.map(
+                        (item, index) => (
 
-                        <li
-                          key={index}
-                          className="flex gap-3"
-                        >
+                          <li
+                            key={index}
+                            className="flex gap-3"
+                          >
 
-                          <span className="font-bold text-green-600">
-                            ✓
-                          </span>
+                            <span className="font-bold text-green-600">
+                              ✓
+                            </span>
 
-                          {item}
+                            {item}
 
-                        </li>
+                          </li>
 
-                      )
-                    )}
+                        )
+                      )}
 
-                  </ul>
+                    </ul>
+                  </SectionCollapse>
 
                 </section>
 
@@ -519,37 +666,36 @@ export default async function TourDetailPage({
 
               {tour.exclusions?.length > 0 && (
 
-                <section className="mt-12">
-
-                  <h2 className="mb-5 text-3xl font-bold">
-
-                    What's Not Included
-
-                  </h2>
+                <section id="excluded" className="mt-12">
 
 
-                  <ul className="space-y-3">
+                  <SectionCollapse title="What`s Not Included">
+                    <hr />
 
-                    {tour.exclusions.map(
-                      (item, index) => (
 
-                        <li
-                          key={index}
-                          className="flex gap-3"
-                        >
+                    <ul className="space-y-3">
 
-                          <span className="font-bold text-red-600">
-                            ×
-                          </span>
+                      {tour.exclusions.map(
+                        (item, index) => (
 
-                          {item}
+                          <li
+                            key={index}
+                            className="flex gap-3"
+                          >
 
-                        </li>
+                            <span className="font-bold text-red-600">
+                              ×
+                            </span>
 
-                      )
-                    )}
+                            {item}
 
-                  </ul>
+                          </li>
+
+                        )
+                      )}
+
+                    </ul>
+                  </SectionCollapse>
 
                 </section>
 
@@ -562,26 +708,25 @@ export default async function TourDetailPage({
 
               {tour.importantInformation && (
 
-                <section className="mt-12 rounded-xl bg-gray-50 p-6">
+                <section id="important-information" className="mt-12 rounded-xl bg-gray-50 p-6">
 
-                  <h2 className="mb-4 text-2xl font-bold">
+                  <SectionCollapse title="Important Information">
+                    <hr />
 
-                    Important Information
+                    <p className="whitespace-pre-line leading-7 text-gray-700">
 
-                  </h2>
+                      {tour.importantInformation}
 
-
-                  <p className="whitespace-pre-line leading-7 text-gray-700">
-
-                    {tour.importantInformation}
-
-                  </p>
+                    </p>
+                  </SectionCollapse>
 
                 </section>
 
               )}
 
             </div>
+
+
 
 
             {/* =================================
@@ -680,16 +825,15 @@ export default async function TourDetailPage({
                 )}
 
 
-
                 {/* ================================
                     ENQUIRY
-                    ================================= */}
+                ================================= */}
 
                 <Link
-                  href={`/enquiry?experienceId=${tour._id}&experienceType=${tour.pageType.slug}`}
+                  href={`/booking?experienceId=${tour._id}&experienceType=tour&enquiry=true`}
                   className={`block rounded-lg border border-gray-900 px-6 py-4 text-center font-semibold text-gray-900 hover:bg-gray-100 ${isBookable
-                      ? "mt-3"
-                      : "mt-8"
+                    ? "mt-3"
+                    : "mt-8"
                     }`}
                 >
 
@@ -702,25 +846,133 @@ export default async function TourDetailPage({
             </aside>
 
           </div>
+          {/* =====================================
+               FREQUENTLY ASKED QUESTIONS
+              ===================================== */}
 
+          {Array.isArray(tour.faqs) &&
+            tour.faqs.length > 0 && (
+
+              <section id="map-faq" className="mx-auto mt-16 max-w-7xl px-6">
+                <SectionCollapse title="Map-FAQ">
+                  <hr />
+                  <div className="grid gap-10 lg:grid-cols-3">
+
+                    {/* FAQ IMAGE */}
+
+                    {tour.faqImageUrl && (
+
+                      <div className="lg:col-span-1">
+
+                        <div className="sticky top-24 overflow-hidden rounded-2xl">
+
+                          <img
+                            src={tour.faqImageUrl}
+                            alt={`${tour.title} FAQ`}
+                            className="h-[420px] w-full object-cover"
+                          />
+
+                        </div>
+
+                      </div>
+
+                    )}
+
+                    {/* FAQ CONTENT */}
+
+                    <div
+                      className={
+                        tour.faqImageUrl
+                          ? "lg:col-span-2"
+                          : "lg:col-span-3"
+                      }
+                    >
+
+                      <div className="mb-8">
+
+                        <p className="text-sm font-semibold uppercase tracking-wider text-emerald-600">
+                          Frequently Asked Questions
+                        </p>
+
+                        <h2 className="mt-2 text-3xl font-bold text-gray-900">
+                          Questions About {tour.title}
+                        </h2>
+
+                        <p className="mt-3 text-gray-600">
+                          Find answers to common questions about this tour.
+                        </p>
+
+                      </div>
+
+                      <div className="space-y-4">
+
+                        {tour.faqs.map(
+                          (faq, index) => (
+
+                            <details
+                              key={index}
+                              className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                            >
+
+                              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+
+                                <span>
+                                  {faq.question}
+                                </span>
+
+                                <span className="text-2xl text-emerald-600 transition-transform duration-300 group-open:rotate-45">
+                                  +
+                                </span>
+
+                              </summary>
+
+                              {faq.answer && (
+
+                                <div className="mt-4 border-t border-gray-100 pt-4">
+
+                                  <p className="leading-7 text-gray-600">
+                                    {faq.answer}
+                                  </p>
+
+                                </div>
+
+                              )}
+
+                            </details>
+
+                          )
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  </div>
+                </SectionCollapse>
+              </section>
+
+            )}
 
           {/* =====================================
               FEEDBACK / COMMENTS
           ===================================== */}
 
-          <section className="mx-auto mt-16 max-w-5xl">
+          <section id="reviews" className="mx-auto mt-16 max-w-5xl">
+            <SectionCollapse title="Reviews">
+              <hr />
+              <FeedbackList
+                pageId={String(tour._id)}
+              />
+            </SectionCollapse>
 
-            <FeedbackList
-              pageId={String(tour._id)}
-            />
-
-            <FeedbackForm
-              pageId={String(tour._id)}
-              pageTitle={tour.title}
-            />
+            <SectionCollapse title="Form">
+              <FeedbackForm
+                pageId={String(tour._id)}
+                pageTitle={tour.title}
+              />
+            </SectionCollapse>
 
           </section>
-
 
         </section>
 
@@ -736,11 +988,13 @@ export default async function TourDetailPage({
 INFO CARD
 =========================================
 */
-
 function InfoCard({
   label,
   value,
+  icon,
 }) {
+
+
 
   if (!value) {
     return null;
@@ -748,24 +1002,32 @@ function InfoCard({
 
 
   return (
-
     <div className="rounded-xl bg-gray-50 p-5">
 
-      <p className="text-sm text-gray-500">
+      <div className="flex items-center gap-3">
 
-        {label}
+        <span className="flex h-1 w-1 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm">
+          {icon}
+        </span>
 
-      </p>
+        <div>
 
+          <p className="text-sm text-gray-500">
+            {label}
+          </p>
 
-      <p className="mt-2 font-semibold">
+          <p className="mt-1 font-semibold text-gray-900">
+            {value}
+          </p>
 
-        {value}
+        </div>
 
-      </p>
+      </div>
 
     </div>
 
   );
 }
+
+
 

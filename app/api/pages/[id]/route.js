@@ -1,4 +1,6 @@
+
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
@@ -21,6 +23,85 @@ function getAdminFromRequest(request) {
 
 /*
 ========================================
+CLEAN PAGE IMAGES
+========================================
+
+Supports:
+
+[
+  {
+    url: "https://example.com/image.jpg",
+    alt: "Everest Base Camp"
+  }
+]
+
+Also supports old string format:
+
+[
+  "https://example.com/image.jpg"
+]
+
+The first image is the primary image.
+========================================
+*/
+
+function getCleanImages(images) {
+
+  if (!Array.isArray(images)) {
+    return [];
+  }
+
+
+  return images
+    .map((image) => {
+
+      /*
+      --------------------------------
+      OLD STRING FORMAT
+      --------------------------------
+      */
+
+      if (typeof image === "string") {
+
+        return {
+          url: image.trim(),
+          alt: "",
+        };
+
+      }
+
+
+      /*
+      --------------------------------
+      OBJECT FORMAT
+      --------------------------------
+      */
+
+      return {
+
+        url:
+          String(
+            image?.url || ""
+          ).trim(),
+
+        alt:
+          String(
+            image?.alt || ""
+          ).trim(),
+
+      };
+
+    })
+    .filter(
+      (image) =>
+        image.url
+    );
+
+}
+
+
+/*
+========================================
 GET SINGLE PAGE
 ========================================
 */
@@ -34,41 +115,62 @@ export async function GET(
 
     await connectDB();
 
-    const { id } = await params;
+    const { id } =
+      await params;
 
-    const page = await Page.findById(id)
-      .populate("pageType")
-      .populate("region")
-      .lean();
+
+    const page =
+      await Page.findById(id)
+
+        .populate("pageType")
+
+        .populate("region")
+
+        .lean();
+
 
     if (!page) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Page not found",
+          message:
+            "Page not found",
         },
         { status: 404 }
       );
+
     }
 
+
     return NextResponse.json({
+
       success: true,
+
       data: page,
+
     });
+
 
   } catch (error) {
 
-    console.error("GET page error:", error);
+    console.error(
+      "GET page error:",
+      error
+    );
+
 
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message:
+          error.message,
       },
       { status: 500 }
     );
+
   }
+
 }
 
 
@@ -91,24 +193,36 @@ export async function PUT(
     ========================================
     */
 
-    const admin = getAdminFromRequest(request);
+    const admin =
+      getAdminFromRequest(
+        request
+      );
+
 
     if (!admin) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Unauthorized. Admin login required.",
+          message:
+            "Unauthorized. Admin login required.",
         },
         { status: 401 }
       );
+
     }
+
 
     await connectDB();
 
-    const { id } = await params;
 
-    const body = await request.json();
+    const { id } =
+      await params;
+
+
+    const body =
+      await request.json();
+
 
     /*
     ========================================
@@ -119,16 +233,20 @@ export async function PUT(
     const existingPage =
       await Page.findById(id);
 
+
     if (!existingPage) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Page not found",
+          message:
+            "Page not found",
         },
         { status: 404 }
       );
+
     }
+
 
     /*
     ========================================
@@ -141,33 +259,42 @@ export async function PUT(
       return NextResponse.json(
         {
           success: false,
-          message: "Title is required",
+          message:
+            "Title is required",
         },
         { status: 400 }
       );
+
     }
+
 
     if (!body.slug) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Slug is required",
+          message:
+            "Slug is required",
         },
         { status: 400 }
       );
+
     }
+
 
     if (!body.pageType) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Page type is required",
+          message:
+            "Page type is required",
         },
         { status: 400 }
       );
+
     }
+
 
     /*
     ========================================
@@ -175,28 +302,59 @@ export async function PUT(
     ========================================
     */
 
-    const pageType =
-      await PageType.findOne({
-        $or: [
-          { _id: body.pageType },
-          {
-            slug:
-              String(body.pageType)
-                .toLowerCase(),
-          },
-        ],
-      });
+    let pageType = null;
+
+
+    /*
+    --------------------------------
+    PAGE TYPE CAN BE:
+
+    - ObjectId
+    - Slug
+    --------------------------------
+    */
+
+    if (
+      mongoose.isValidObjectId(
+        body.pageType
+      )
+    ) {
+
+      pageType =
+        await PageType.findById(
+          body.pageType
+        );
+
+    } else {
+
+      pageType =
+        await PageType.findOne({
+
+          slug:
+            String(
+              body.pageType
+            )
+              .trim()
+              .toLowerCase(),
+
+        });
+
+    }
+
 
     if (!pageType) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid page type",
+          message:
+            "Invalid page type",
         },
         { status: 400 }
       );
+
     }
+
 
     /*
     ========================================
@@ -209,11 +367,18 @@ export async function PUT(
         .trim()
         .toLowerCase();
 
+
     const duplicate =
       await Page.findOne({
+
         slug,
-        _id: { $ne: id },
+
+        _id: {
+          $ne: id,
+        },
+
       });
+
 
     if (duplicate) {
 
@@ -225,7 +390,9 @@ export async function PUT(
         },
         { status: 409 }
       );
+
     }
+
 
     /*
     ========================================
@@ -235,33 +402,68 @@ export async function PUT(
 
     let regionId = null;
 
+
     if (body.region) {
 
-      const region =
-        await Region.findOne({
-          $or: [
-            { _id: body.region },
-            {
-              slug:
-                String(body.region)
-                  .toLowerCase(),
-            },
-          ],
-        });
+      let region = null;
+
+
+      /*
+      --------------------------------
+      REGION CAN BE:
+
+      - ObjectId
+      - Slug
+      --------------------------------
+      */
+
+      if (
+        mongoose.isValidObjectId(
+          body.region
+        )
+      ) {
+
+        region =
+          await Region.findById(
+            body.region
+          );
+
+      } else {
+
+        region =
+          await Region.findOne({
+
+            slug:
+              String(
+                body.region
+              )
+                .trim()
+                .toLowerCase(),
+
+          });
+
+      }
+
 
       if (!region) {
 
         return NextResponse.json(
           {
             success: false,
-            message: "Invalid region",
+            message:
+              "Invalid region",
           },
           { status: 400 }
         );
+
       }
 
-      regionId = region._id;
+
+      regionId =
+        region._id;
+
     }
+
 
     /*
     ========================================
@@ -270,13 +472,21 @@ export async function PUT(
     */
 
     const pricingType =
-      body.price?.pricingType === "pax_based"
+      body.price?.pricingType ===
+        "pax_based"
+
         ? "pax_based"
+
         : "fixed";
+
 
     let paxPrices = [];
 
-    if (pricingType === "pax_based") {
+
+    if (
+      pricingType ===
+      "pax_based"
+    ) {
 
       if (
         !Array.isArray(
@@ -292,145 +502,510 @@ export async function PUT(
           },
           { status: 400 }
         );
+
       }
+
 
       paxPrices =
         body.price.paxPrices.map(
           (tier) => ({
+
             minPax:
-              Number(tier.minPax),
+              Number(
+                tier.minPax
+              ),
 
             maxPax:
               tier.maxPax === "" ||
-              tier.maxPax === null ||
-              tier.maxPax === undefined
+                tier.maxPax === null ||
+                tier.maxPax === undefined
+
                 ? null
-                : Number(tier.maxPax),
+
+                : Number(
+                  tier.maxPax
+                ),
 
             pricePerPax:
-              Number(tier.pricePerPax),
+              Number(
+                tier.pricePerPax
+              ),
+
           })
         );
+
     }
+
 
     /*
     ========================================
-    UPDATE
+    MULTIPLE IMAGES
+    ========================================
+    */
+
+    let images;
+
+
+    /*
+    ----------------------------------------
+    IF IMAGES WERE SENT
+    ----------------------------------------
+
+    Replace the existing image list with
+    the new ordered image list.
+
+    This is important because the admin
+    PageForm can reorder/remove images.
+    ----------------------------------------
+    */
+
+    if (
+      Array.isArray(
+        body.images
+      )
+    ) {
+
+      images =
+        getCleanImages(
+          body.images
+        );
+
+    }
+
+
+    /*
+    ----------------------------------------
+    IF IMAGES WERE NOT SENT
+    ----------------------------------------
+
+    Preserve existing images.
+
+    This prevents an older frontend or
+    partial update from accidentally
+    deleting the gallery.
+    ----------------------------------------
+    */
+
+    else {
+
+      images =
+        Array.isArray(
+          existingPage.images
+        )
+          ? existingPage.images.map(
+            (image) => ({
+
+              url:
+                String(
+                  image?.url || ""
+                ).trim(),
+
+              alt:
+                String(
+                  image?.alt || ""
+                ).trim(),
+
+            })
+          ).filter(
+            (image) =>
+              image.url
+          )
+
+          : [];
+
+    }
+
+
+    /*
+    ========================================
+    BACKWARD COMPATIBILITY
+    ========================================
+
+    If the existing page has imageUrl but
+    no images array, convert imageUrl into
+    the first gallery image.
+
+    This allows old pages to continue
+    working after the multiple-image update.
+    ========================================
+    */
+
+    if (
+      images.length === 0 &&
+      !Array.isArray(
+        body.images
+      ) &&
+      existingPage.imageUrl
+    ) {
+
+      images = [
+
+        {
+          url:
+            String(
+              existingPage.imageUrl
+            ).trim(),
+
+          alt: "",
+
+        },
+
+      ];
+
+    }
+
+
+    /*
+    ========================================
+    PRIMARY IMAGE
+    ========================================
+
+    The first image in the ordered array
+    is always the primary image.
+
+    imageUrl is kept synchronized for
+    backward compatibility.
+    ========================================
+    */
+
+    const primaryImageUrl =
+      images.length > 0
+
+        ? images[0].url
+
+        : Array.isArray(
+          body.images
+        )
+
+          ? ""
+
+          : String(
+            existingPage.imageUrl ||
+            ""
+          ).trim();
+
+
+    /*
+    ========================================
+    UPDATE BASIC FIELDS
     ========================================
     */
 
     existingPage.title =
       body.title;
 
+
     existingPage.slug =
       slug;
+
 
     existingPage.pageType =
       pageType._id;
 
+
     existingPage.region =
       regionId;
 
+
+    /*
+    ========================================
+    PRIMARY / LEGACY IMAGE
+    ========================================
+    */
+
     existingPage.imageUrl =
-      body.imageUrl || "";
+      primaryImageUrl;
+
+
+    /*
+    ========================================
+    MULTIPLE IMAGES
+    ========================================
+    */
+
+    existingPage.images =
+      images;
+
 
     existingPage.description =
       body.description || "";
 
+
     existingPage.content =
       body.content || "";
 
+    existingPage.highlight =
+      body.highlight || "";
+
+
+    /*
+    ========================================
+    PRICE
+    ========================================
+    */
+
     existingPage.price = {
+
       currency:
-        body.price?.currency || "USD",
+        body.price?.currency ||
+        "USD",
 
       pricingType,
 
       amount:
         body.price?.amount === "" ||
-        body.price?.amount === undefined
+          body.price?.amount ===
+          undefined
+
           ? 0
-          : Number(body.price.amount),
+
+          : Number(
+            body.price.amount
+          ),
 
       paxPrices,
+
     };
+
+
+    /*
+    ========================================
+    TREK DETAILS
+    ========================================
+    */
 
     existingPage.trekDetails =
       body.trekDetails || {};
 
+
+    /*
+    ========================================
+    TOUR DETAILS
+    ========================================
+    */
+
     existingPage.tourDetails =
       body.tourDetails || {};
 
+
+    /*
+    ========================================
+    ITINERARY
+    ========================================
+    */
+
     existingPage.itinerary =
-      Array.isArray(body.itinerary)
+      Array.isArray(
+        body.itinerary
+      )
+
         ? body.itinerary
+
         : [];
+
+
+    /*
+    ========================================
+    INCLUSIONS
+    ========================================
+    */
 
     existingPage.inclusions =
-      Array.isArray(body.inclusions)
+      Array.isArray(
+        body.inclusions
+      )
+
         ? body.inclusions
+
         : [];
 
+
+    /*
+    ========================================
+    EXCLUSIONS
+    ========================================
+    */
+
     existingPage.exclusions =
-      Array.isArray(body.exclusions)
+      Array.isArray(
+        body.exclusions
+      )
+
         ? body.exclusions
+
         : [];
+
+
+    /*
+    ========================================
+    IMPORTANT INFORMATION
+    ========================================
+    */
 
     existingPage.importantInformation =
       body.importantInformation || "";
 
+
+    /*
+========================================
+FAQ- MAP- IMAGE
+========================================
+*/
+
+    existingPage.faqImageUrl=
+    body.faqImageUrl || "";
+
+    /*
+    ========================================
+    FAQS
+    ========================================
+    */
+
+    existingPage.faqs=
+    Array.isArray(body.faqs)
+      ? body.faqs
+      : [];
+
+
+
+
+    /*
+    ========================================
+    SEO
+    ========================================
+    */
+
     existingPage.seo =
       body.seo || {};
+
+
+    /*
+    ========================================
+    PUBLISHED
+    ========================================
+    */
 
     existingPage.published =
       body.published === true;
 
+
+    /*
+    ========================================
+    ORDER
+    ========================================
+    */
+
     existingPage.order =
       Number(body.order) || 0;
 
+
+    /*
+    ========================================
+    SAVE
+    ========================================
+    */
+
     await existingPage.save();
 
+
+    /*
+    ========================================
+    RESPONSE
+    ========================================
+    */
+
     return NextResponse.json({
+
       success: true,
-      message: "Page updated successfully",
-      data: existingPage,
+
+      message:
+        "Page updated successfully",
+
+      data:
+        existingPage,
+
     });
 
-  } 
+
+  }
+
   catch (error) {
 
-    console.error("PUT page error:", error);
-  
-  
+    console.error(
+      "PUT page error:",
+      error
+    );
+
+
     /*
     ========================================
     MONGOOSE VALIDATION ERROR
     ========================================
     */
-  
-    if (error.name === "ValidationError") {
-  
-      const messages = Object.values(error.errors)
-        .map((item) => item.message);
-  
+
+    if (
+      error.name ===
+      "ValidationError"
+    ) {
+
+      const messages =
+        Object.values(
+          error.errors
+        )
+          .map(
+            (item) =>
+              item.message
+          );
+
+
       return NextResponse.json(
         {
           success: false,
-          message: messages.join(", "),
+          message:
+            messages.join(", "),
         },
         { status: 400 }
       );
+
     }
-  
-  
+
+
+    /*
+    ========================================
+    CAST ERROR
+    ========================================
+    */
+
+    if (
+      error.name ===
+      "CastError"
+    ) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            `Invalid ${error.path ||
+            "value"
+            }: ${error.value}`,
+        },
+        { status: 400 }
+      );
+
+    }
+
+
     /*
     ========================================
     DUPLICATE KEY ERROR
     ========================================
     */
-  
-    if (error.code === 11000) {
-  
+
+    if (
+      error.code ===
+      11000
+    ) {
+
       return NextResponse.json(
         {
           success: false,
@@ -439,15 +1014,16 @@ export async function PUT(
         },
         { status: 409 }
       );
+
     }
-  
-  
+
+
     /*
     ========================================
     OTHER SERVER ERRORS
     ========================================
     */
-  
+
     return NextResponse.json(
       {
         success: false,
@@ -457,7 +1033,9 @@ export async function PUT(
       },
       { status: 500 }
     );
+
   }
+
 }
 
 
@@ -480,7 +1058,11 @@ export async function DELETE(
     ========================================
     */
 
-    const admin = getAdminFromRequest(request);
+    const admin =
+      getAdminFromRequest(
+        request
+      );
+
 
     if (!admin) {
 
@@ -492,30 +1074,46 @@ export async function DELETE(
         },
         { status: 401 }
       );
+
     }
+
 
     await connectDB();
 
-    const { id } = await params;
+
+    const { id } =
+      await params;
+
 
     const page =
-      await Page.findByIdAndDelete(id);
+      await Page.findByIdAndDelete(
+        id
+      );
+
 
     if (!page) {
 
       return NextResponse.json(
         {
           success: false,
-          message: "Page not found",
+          message:
+            "Page not found",
         },
         { status: 404 }
       );
+
     }
 
+
     return NextResponse.json({
+
       success: true,
-      message: "Page deleted successfully",
+
+      message:
+        "Page deleted successfully",
+
     });
+
 
   } catch (error) {
 
@@ -524,12 +1122,16 @@ export async function DELETE(
       error
     );
 
+
     return NextResponse.json(
       {
         success: false,
-        message: error.message,
+        message:
+          error.message,
       },
       { status: 500 }
     );
+
   }
+
 }

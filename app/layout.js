@@ -144,13 +144,13 @@ export default async function RootLayout({
         ================================= */}
 
         <Navbar menus={menus} />
-
+        <div className="h-20" />
 
         {/* =================================
             MAIN CONTENT
         ================================= */}
 
-        <main className="min-h-screen">
+        <main className="min-h-screen ">
 
           {children}
 

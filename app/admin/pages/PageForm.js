@@ -3,26 +3,33 @@
 import { useEffect, useMemo, useState } from "react";
 
 /*
-=========================================================
+
 PAGE FORM
 File:
 app/admin/pages/PageForm.js
 
 Latest version:
-- Dynamic PageType ObjectId
-- Dynamic Region ObjectId
-- Fixed pricing
-- PAX-based pricing
-- Trek details
-- Tour details
-- Itinerary
-- Inclusions
-- Exclusions
-- Important information
-- SEO
-- Publishing
-=========================================================
-*/
+
+* Dynamic PageType ObjectId
+* Dynamic Region ObjectId
+* Multiple page images
+* Image preview
+* Image alt text
+* Image remove
+* Image reorder / move up / move down
+* First image is primary image
+* Fixed pricing
+* PAX-based pricing
+* Trek details
+* Tour details
+* Itinerary
+* Inclusions
+* Exclusions
+* Important information
+* SEO
+* Publishing
+ =========================================================
+ */
 
 export default function PageForm({
   initialData = {},
@@ -30,27 +37,98 @@ export default function PageForm({
   loading = false,
 }) {
   /*
-  ========================================================
-  HELPERS
-  ========================================================
+  ==
+  
+  # HELPERS
+  
   */
-
- 
 
   function getId(value) {
     if (!value) return "";
+
 
     if (typeof value === "object" && value._id) {
       return String(value._id);
     }
 
     return String(value);
+
+
   }
 
   /*
-  ========================================================
-  INITIAL FORM DATA
-  ========================================================
+ 
+ # IMAGE INITIAL DATA
+ 
+ */
+
+  function getInitialImages() {
+    /*
+    ------------------------------------------------------
+    NEW MULTIPLE IMAGE FORMAT
+    ------------------------------------------------------
+    */
+
+
+    if (
+      Array.isArray(initialData.images) &&
+      initialData.images.length > 0
+    ) {
+      return initialData.images
+        .map((item) => {
+          /*
+          Support both:
+    
+          {
+            url: "...",
+            alt: "..."
+          }
+    
+          and simple string URLs.
+          */
+
+          if (typeof item === "string") {
+            return {
+              url: item,
+              alt: "",
+            };
+          }
+
+          return {
+            url: item?.url || "",
+            alt: item?.alt || "",
+          };
+        })
+        .filter((item) => item.url || item.alt);
+    }
+
+    /*
+    ------------------------------------------------------
+    OLD SINGLE IMAGE FORMAT
+    ------------------------------------------------------
+    
+    Existing pages using imageUrl are automatically
+    converted into the first gallery image.
+    */
+
+    if (initialData.imageUrl) {
+      return [
+        {
+          url: initialData.imageUrl,
+          alt: "",
+        },
+      ];
+    }
+
+    return [];
+
+
+  }
+
+  /*
+  
+  # INITIAL FORM DATA
+  
   */
 
   const [formData, setFormData] = useState({
@@ -59,6 +137,7 @@ export default function PageForm({
     BASIC INFORMATION
     ======================================================
     */
+
 
     title: initialData.title || "",
 
@@ -72,7 +151,26 @@ export default function PageForm({
 
     content: initialData.content || "",
 
+    highlight: initialData.highlight || "",
+
+    /*
+    ------------------------------------------------------
+    LEGACY PRIMARY IMAGE
+    ------------------------------------------------------
+    
+    Kept for backward compatibility.
+    The first image in images becomes imageUrl.
+    */
+
     imageUrl: initialData.imageUrl || "",
+
+    /*
+    ------------------------------------------------------
+    MULTIPLE IMAGES
+    ------------------------------------------------------
+    */
+
+    images: getInitialImages(),
 
     /*
     ======================================================
@@ -93,11 +191,11 @@ export default function PageForm({
       paxPrices:
         Array.isArray(initialData.price?.paxPrices)
           ? initialData.price.paxPrices.map((item) => ({
-              minPax: item.minPax ?? "",
-              maxPax: item.maxPax ?? "",
-              pricePerPax:
-                item.pricePerPax ?? "",
-            }))
+            minPax: item.minPax ?? "",
+            maxPax: item.maxPax ?? "",
+            pricePerPax:
+              item.pricePerPax ?? "",
+          }))
           : [],
     },
 
@@ -183,30 +281,30 @@ export default function PageForm({
     itinerary:
       Array.isArray(initialData.itinerary)
         ? initialData.itinerary.map(
-            (item, index) => ({
-              day:
-                item.day ??
-                index + 1,
+          (item, index) => ({
+            day:
+              item.day ??
+              index + 1,
 
-              title:
-                item.title || "",
+            title:
+              item.title || "",
 
-              description:
-                item.description || "",
+            description:
+              item.description || "",
 
-              accommodation:
-                item.accommodation || "",
+            accommodation:
+              item.accommodation || "",
 
-              meal:
-                item.meal || "",
+            meal:
+              item.meal || "",
 
-              altitude:
-                item.altitude || "",
+            altitude:
+              item.altitude || "",
 
-              walkingHours:
-                item.walkingHours ?? "",
-            })
-          )
+            walkingHours:
+              item.walkingHours ?? "",
+          })
+        )
         : [],
 
     /*
@@ -242,9 +340,35 @@ export default function PageForm({
 
     /*
     ======================================================
-    PUBLISHING
+    Map Image
     ======================================================
     */
+
+
+    faqImageUrl:
+      initialData.faqImageUrl || "",
+
+    /*
+    ======================================================
+    FAQS
+    ======================================================
+    */
+
+    faqs:
+      Array.isArray(initialData.faqs)
+        ? initialData.faqs.map((item) => ({
+          question:
+            item.question || "",
+          answer:
+            item.answer || "",
+        }))
+        : [],
+
+    /*
+======================================================
+PUBLISHING
+======================================================
+*/
 
     published:
       initialData.published ?? false,
@@ -285,12 +409,16 @@ export default function PageForm({
       noIndex:
         initialData.seo?.noIndex ?? false,
     },
+
+
   });
 
+
+
   /*
-  ========================================================
-  PAGE TYPES
-  ========================================================
+  
+  # PAGE TYPES
+  
   */
 
   const [pageTypes, setPageTypes] = useState([]);
@@ -302,10 +430,10 @@ export default function PageForm({
     useState("");
 
   /*
-  ========================================================
-  REGIONS
-  ========================================================
-  */
+ 
+ # REGIONS
+ 
+ */
 
   const [regions, setRegions] = useState([]);
 
@@ -316,22 +444,23 @@ export default function PageForm({
     useState("");
 
   /*
-  ========================================================
-  FORM ERROR
-  ========================================================
+  
+  # FORM ERROR
+  
   */
 
   const [formError, setFormError] =
     useState("");
 
   /*
-  ========================================================
-  LOAD PAGE TYPES
-  ========================================================
+  
+  # LOAD PAGE TYPES
+  
   */
 
   useEffect(() => {
     let mounted = true;
+
 
     async function loadPageTypes() {
       try {
@@ -352,7 +481,7 @@ export default function PageForm({
         if (!response.ok || !result.success) {
           throw new Error(
             result.message ||
-              "Failed to load page types."
+            "Failed to load page types."
           );
         }
 
@@ -372,7 +501,7 @@ export default function PageForm({
         if (mounted) {
           setPageTypeError(
             error.message ||
-              "Failed to load page types."
+            "Failed to load page types."
           );
         }
       } finally {
@@ -387,16 +516,19 @@ export default function PageForm({
     return () => {
       mounted = false;
     };
+
+
   }, []);
 
   /*
-  ========================================================
-  LOAD REGIONS
-  ========================================================
+  
+  # LOAD REGIONS
+  
   */
 
   useEffect(() => {
     let mounted = true;
+
 
     async function loadRegions() {
       try {
@@ -417,7 +549,7 @@ export default function PageForm({
         if (!response.ok || !result.success) {
           throw new Error(
             result.message ||
-              "Failed to load regions."
+            "Failed to load regions."
           );
         }
 
@@ -437,7 +569,7 @@ export default function PageForm({
         if (mounted) {
           setRegionError(
             error.message ||
-              "Failed to load regions."
+            "Failed to load regions."
           );
         }
       } finally {
@@ -452,12 +584,14 @@ export default function PageForm({
     return () => {
       mounted = false;
     };
+
+
   }, []);
 
   /*
-  ========================================================
-  SELECTED PAGE TYPE
-  ========================================================
+  
+  # SELECTED PAGE TYPE
+  
   */
 
   const selectedPageType = useMemo(() => {
@@ -469,9 +603,9 @@ export default function PageForm({
   }, [pageTypes, formData.pageType]);
 
   /*
-  ========================================================
-  PAGE TYPE SLUG
-  ========================================================
+  
+  # PAGE TYPE SLUG
+  
   */
 
   const pageTypeSlug =
@@ -480,9 +614,9 @@ export default function PageForm({
       ?.trim() || "";
 
   /*
-  ========================================================
-  PAGE TYPE CONDITIONS
-  ========================================================
+  
+  # PAGE TYPE CONDITIONS
+  
   */
 
   const isTrek =
@@ -492,18 +626,18 @@ export default function PageForm({
     pageTypeSlug === "tour";
 
   /*
-  ========================================================
-  EXPERIENCE PAGE
-  ========================================================
+  
+  # EXPERIENCE PAGE
+  
   */
 
   const isExperience =
     isTrek || isTour;
 
   /*
-  ========================================================
-  BASIC INPUT
-  ========================================================
+  
+  # BASIC INPUT
+  
   */
 
   function handleChange(e) {
@@ -513,6 +647,7 @@ export default function PageForm({
       type,
       checked,
     } = e.target;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -524,40 +659,42 @@ export default function PageForm({
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  PAGE TYPE CHANGE
-  ========================================================
+  
+  # PAGE TYPE CHANGE
+  
   */
 
   function handlePageTypeChange(e) {
     const value = e.target.value;
+
 
     setFormData((prev) => ({
       ...prev,
 
       pageType: value,
 
-      /*
-      Keep region optional for every page type.
-      The API will validate the relationship.
-      */
       region: prev.region,
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  REGION CHANGE
-  ========================================================
+  
+  # REGION CHANGE
+  
   */
 
   function handleRegionChange(e) {
     const value = e.target.value;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -566,12 +703,14 @@ export default function PageForm({
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  PRICE CHANGE
-  ========================================================
+  
+  # PRICE CHANGE
+  
   */
 
   function handlePriceChange(e) {
@@ -579,6 +718,7 @@ export default function PageForm({
       name,
       value,
     } = e.target;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -591,12 +731,14 @@ export default function PageForm({
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  TREK DETAILS CHANGE
-  ========================================================
+  
+  # TREK DETAILS CHANGE
+  
   */
 
   function handleTrekChange(e) {
@@ -604,6 +746,7 @@ export default function PageForm({
       name,
       value,
     } = e.target;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -614,12 +757,14 @@ export default function PageForm({
         [name]: value,
       },
     }));
+
+
   }
 
   /*
-  ========================================================
-  TOUR DETAILS CHANGE
-  ========================================================
+  
+  # TOUR DETAILS CHANGE
+  
   */
 
   function handleTourChange(e) {
@@ -627,6 +772,7 @@ export default function PageForm({
       name,
       value,
     } = e.target;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -637,12 +783,98 @@ export default function PageForm({
         [name]: value,
       },
     }));
+
+
   }
 
+
   /*
-  ========================================================
-  SEO CHANGE
-  ========================================================
+  Handle Map Image FQA 
+  */
+  function handleFaqImageUrlChange(e) {
+    const { value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      faqImageUrl: value,
+    }));
+
+    setFormError("");
+  }
+
+  function addFaq() {
+    setFormData((prev) => ({
+      ...prev,
+
+      faqs: [
+        ...prev.faqs,
+        {
+          question: "",
+          answer: "",
+        },
+      ],
+    }));
+
+    setFormError("");
+  }
+
+  function removeFaq(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+      faqs: prev.faqs.filter(
+        (_, i) => i !== index
+      ),
+    }));
+
+    setFormError("");
+  }
+
+  function handleFaqChange(
+    index,
+    field,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+      faqs: prev.faqs.map(
+        (item, i) =>
+          i === index
+            ? {
+              ...item,
+              [field]: value,
+            }
+            : item
+      ),
+    }));
+
+    setFormError("");
+  }
+
+  function getCleanFaqs() {
+    return formData.faqs
+      .map((item) => ({
+        question: String(
+          item.question || ""
+        ).trim(),
+
+        answer: String(
+          item.answer || ""
+        ).trim(),
+      }))
+      .filter(
+        (item) =>
+          item.question ||
+          item.answer
+      );
+  }
+
+
+  /*
+  
+  # SEO CHANGE
+  
   */
 
   function handleSeoChange(e) {
@@ -652,6 +884,7 @@ export default function PageForm({
       type,
       checked,
     } = e.target;
+
 
     setFormData((prev) => ({
       ...prev,
@@ -665,17 +898,147 @@ export default function PageForm({
             : value,
       },
     }));
+
+
   }
 
   /*
-  ========================================================
-  PAX PRICE
-  ========================================================
+  
+  # MULTIPLE IMAGES
+  
+  */
+
+  function addImage() {
+    setFormData((prev) => ({
+      ...prev,
+
+
+      images: [
+        ...prev.images,
+
+        {
+          url: "",
+          alt: "",
+        },
+      ],
+    }));
+
+    setFormError("");
+
+
+  }
+
+  /*
+  
+  # REMOVE IMAGE
+  
+  */
+
+  function removeImage(index) {
+    setFormData((prev) => ({
+      ...prev,
+
+
+      images:
+        prev.images.filter(
+          (_, i) => i !== index
+        ),
+    }));
+
+    setFormError("");
+
+
+  }
+
+  /*
+  
+  # UPDATE IMAGE
+  
+  */
+
+  function handleImageChange(
+    index,
+    field,
+    value
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+
+
+      images:
+        prev.images.map(
+          (item, i) =>
+            i === index
+              ? {
+                ...item,
+                [field]: value,
+              }
+              : item
+        ),
+    }));
+
+    setFormError("");
+
+
+  }
+
+  /*
+  
+  # MOVE IMAGE
+  
+  */
+
+  function moveImage(
+    index,
+    direction
+  ) {
+    setFormData((prev) => {
+      const images = [
+        ...prev.images,
+      ];
+
+      const newIndex =
+        direction === "up"
+          ? index - 1
+          : index + 1;
+
+      if (
+        newIndex < 0 ||
+        newIndex >= images.length
+      ) {
+        return prev;
+      }
+
+      const current =
+        images[index];
+
+      images[index] =
+        images[newIndex];
+
+      images[newIndex] =
+        current;
+
+      return {
+        ...prev,
+        images,
+      };
+    });
+
+    setFormError("");
+
+
+  }
+
+  /*
+  
+  # PAX PRICE
+  
   */
 
   function addPaxTier() {
     setFormData((prev) => ({
       ...prev,
+
 
       price: {
         ...prev.price,
@@ -693,17 +1056,20 @@ export default function PageForm({
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  REMOVE PAX TIER
-  ========================================================
+  
+  # REMOVE PAX TIER
+  
   */
 
   function removePaxTier(index) {
     setFormData((prev) => ({
       ...prev,
+
 
       price: {
         ...prev.price,
@@ -716,12 +1082,13 @@ export default function PageForm({
     }));
 
     setFormError("");
+
   }
 
   /*
-  ========================================================
-  UPDATE PAX TIER
-  ========================================================
+  
+  # UPDATE PAX TIER
+  
   */
 
   function handlePaxPriceChange(
@@ -732,6 +1099,7 @@ export default function PageForm({
     setFormData((prev) => ({
       ...prev,
 
+
       price: {
         ...prev.price,
 
@@ -740,26 +1108,29 @@ export default function PageForm({
             (item, i) =>
               i === index
                 ? {
-                    ...item,
-                    [field]: value,
-                  }
+                  ...item,
+                  [field]: value,
+                }
                 : item
           ),
       },
     }));
 
     setFormError("");
+
+
   }
 
   /*
-  ========================================================
-  ITINERARY
-  ========================================================
+  
+  # ITINERARY
+  
   */
 
   function addItinerary() {
     setFormData((prev) => ({
       ...prev,
+
 
       itinerary: [
         ...prev.itinerary,
@@ -782,12 +1153,14 @@ export default function PageForm({
         },
       ],
     }));
+
+
   }
 
   /*
-  ========================================================
-  REMOVE ITINERARY
-  ========================================================
+  
+  # REMOVE ITINERARY
+  
   */
 
   function removeItinerary(index) {
@@ -806,12 +1179,14 @@ export default function PageForm({
             })
           ),
     }));
+
+
   }
 
   /*
-  ========================================================
-  UPDATE ITINERARY
-  ========================================================
+  
+  # UPDATE ITINERARY
+  
   */
 
   function handleItineraryChange(
@@ -822,45 +1197,54 @@ export default function PageForm({
     setFormData((prev) => ({
       ...prev,
 
+
       itinerary:
         prev.itinerary.map(
           (item, i) =>
             i === index
               ? {
-                  ...item,
-                  [field]: value,
-                }
+                ...item,
+                [field]: value,
+              }
               : item
         ),
     }));
+
+
   }
 
   /*
-  ========================================================
-  INCLUSIONS
-  ========================================================
+  
+  # INCLUSIONS
+  
   */
 
   function addInclusion() {
     setFormData((prev) => ({
       ...prev,
 
+
       inclusions: [
         ...prev.inclusions,
         "",
       ],
     }));
+
+
   }
 
   function removeInclusion(index) {
     setFormData((prev) => ({
       ...prev,
 
+
       inclusions:
         prev.inclusions.filter(
           (_, i) => i !== index
         ),
     }));
+
+
   }
 
   function handleInclusionChange(
@@ -870,6 +1254,7 @@ export default function PageForm({
     setFormData((prev) => ({
       ...prev,
 
+
       inclusions:
         prev.inclusions.map(
           (item, i) =>
@@ -878,13 +1263,15 @@ export default function PageForm({
               : item
         ),
     }));
+
+
   }
 
   /*
-  ========================================================
-  EXCLUSIONS
-  ========================================================
-  */
+ 
+ # EXCLUSIONS
+ 
+ */
 
   function addExclusion() {
     setFormData((prev) => ({
@@ -895,17 +1282,22 @@ export default function PageForm({
         "",
       ],
     }));
+
+
   }
 
   function removeExclusion(index) {
     setFormData((prev) => ({
       ...prev,
 
+
       exclusions:
         prev.exclusions.filter(
           (_, i) => i !== index
         ),
     }));
+
+
   }
 
   function handleExclusionChange(
@@ -915,6 +1307,7 @@ export default function PageForm({
     setFormData((prev) => ({
       ...prev,
 
+
       exclusions:
         prev.exclusions.map(
           (item, i) =>
@@ -923,12 +1316,14 @@ export default function PageForm({
               : item
         ),
     }));
+
+
   }
 
   /*
-  ========================================================
-  VALIDATE PAX PRICES
-  ========================================================
+  
+  # VALIDATE PAX PRICES
+  
   */
 
   function validatePaxPrices() {
@@ -938,6 +1333,7 @@ export default function PageForm({
     ) {
       return true;
     }
+
 
     if (
       formData.price.paxPrices.length === 0
@@ -988,8 +1384,7 @@ export default function PageForm({
         tier.minPax < 1
       ) {
         setFormError(
-          `Tier ${
-            tier.index + 1
+          `Tier ${tier.index + 1
           }: Minimum PAX must be a whole number greater than 0.`
         );
 
@@ -1004,8 +1399,7 @@ export default function PageForm({
         tier.pricePerPax <= 0
       ) {
         setFormError(
-          `Tier ${
-            tier.index + 1
+          `Tier ${tier.index + 1
           }: Price per PAX must be greater than 0.`
         );
 
@@ -1022,8 +1416,7 @@ export default function PageForm({
         )
       ) {
         setFormError(
-          `Tier ${
-            tier.index + 1
+          `Tier ${tier.index + 1
           }: Maximum PAX must be greater than or equal to Minimum PAX.`
         );
 
@@ -1085,21 +1478,17 @@ export default function PageForm({
 
         return false;
       }
-
-      /*
-      Optional continuity warning:
-      We don't force continuous tiers,
-      but the user should be aware of gaps.
-      */
     }
 
     return true;
+
+
   }
 
   /*
-  ========================================================
-  CLEAN PAX PRICES
-  ========================================================
+  
+  # CLEAN PAX PRICES
+  
   */
 
   function getCleanPaxPrices() {
@@ -1110,6 +1499,7 @@ export default function PageForm({
             ? ""
             : Number(item.minPax),
 
+
         maxPax:
           item.maxPax === ""
             ? null
@@ -1119,8 +1509,8 @@ export default function PageForm({
           item.pricePerPax === ""
             ? ""
             : Number(
-                item.pricePerPax
-              ),
+              item.pricePerPax
+            ),
       }))
       .filter(
         (item) =>
@@ -1131,12 +1521,14 @@ export default function PageForm({
         (a, b) =>
           a.minPax - b.minPax
       );
+
+
   }
 
   /*
-  ========================================================
-  CLEAN ITINERARY
-  ========================================================
+  
+  # CLEAN ITINERARY
+  
   */
 
   function getCleanItinerary() {
@@ -1145,6 +1537,7 @@ export default function PageForm({
         day:
           Number(item.day) ||
           index + 1,
+
 
         title:
           String(
@@ -1159,7 +1552,7 @@ export default function PageForm({
         accommodation:
           String(
             item.accommodation ||
-              ""
+            ""
           ).trim(),
 
         meal:
@@ -1176,8 +1569,8 @@ export default function PageForm({
           item.walkingHours === ""
             ? ""
             : Number(
-                item.walkingHours
-              ),
+              item.walkingHours
+            ),
       }))
       .filter(
         (item) =>
@@ -1194,12 +1587,14 @@ export default function PageForm({
           day: index + 1,
         })
       );
+
+
   }
 
   /*
-  ========================================================
-  CLEAN STRING ARRAYS
-  ========================================================
+  
+  # CLEAN STRING ARRAYS
+  
   */
 
   function cleanStringArray(items) {
@@ -1211,13 +1606,41 @@ export default function PageForm({
   }
 
   /*
-  ========================================================
-  FORM SUBMIT
-  ========================================================
+  
+  # CLEAN IMAGES
+  
+  */
+
+  function getCleanImages() {
+    return formData.images
+      .map((item) => ({
+        url:
+          String(
+            item?.url || ""
+          ).trim(),
+
+
+        alt:
+          String(
+            item?.alt || ""
+          ).trim(),
+      }))
+      .filter(
+        (item) => item.url
+      );
+
+
+  }
+
+  /*
+  
+  # FORM SUBMIT
+  
   */
 
   function handleSubmit(e) {
     e.preventDefault();
+
 
     setFormError("");
 
@@ -1278,8 +1701,8 @@ export default function PageForm({
           formData.price.amount === ""
             ? 0
             : Number(
-                formData.price.amount
-              );
+              formData.price.amount
+            );
 
         if (
           !Number.isFinite(amount) ||
@@ -1323,6 +1746,35 @@ export default function PageForm({
 
     /*
     ------------------------------------------------------
+    CLEAN IMAGES
+    ------------------------------------------------------
+    */
+
+    const cleanedFaqs =
+      getCleanFaqs();
+    /*
+    ------------------------------------------------------
+    CLEAN IMAGES
+    ------------------------------------------------------
+    */
+
+    const cleanedImages =
+      getCleanImages();
+
+    /*
+    ------------------------------------------------------
+    PRIMARY IMAGE
+    ------------------------------------------------------
+    
+    First gallery image is automatically the
+    primary image / legacy imageUrl.
+    */
+
+    const primaryImageUrl =
+      cleanedImages[0]?.url || "";
+
+    /*
+    ------------------------------------------------------
     PREPARE SUBMIT DATA
     ------------------------------------------------------
     */
@@ -1352,8 +1804,30 @@ export default function PageForm({
       content:
         formData.content.trim(),
 
+      highlight:
+        formData.highlight.trim(),
+
+
+
+      /*
+      ------------------------------------------------------
+      LEGACY IMAGE URL
+      ------------------------------------------------------
+    
+      The first image is also saved to imageUrl.
+      */
+
       imageUrl:
-        formData.imageUrl.trim(),
+        primaryImageUrl,
+
+      /*
+      ------------------------------------------------------
+      MULTIPLE IMAGES
+      ------------------------------------------------------
+      */
+
+      images:
+        cleanedImages,
 
       /*
       ====================================================
@@ -1372,12 +1846,12 @@ export default function PageForm({
           formData.price.amount === ""
             ? 0
             : Number(
-                formData.price.amount
-              ),
+              formData.price.amount
+            ),
 
         paxPrices:
           formData.price.pricingType ===
-          "pax_based"
+            "pax_based"
             ? cleanedPaxPrices
             : [],
       },
@@ -1497,6 +1971,25 @@ export default function PageForm({
 
       /*
       ====================================================
+      Map Image and FQA
+      ====================================================
+      */
+
+      faqImageUrl:
+        formData.faqImageUrl.trim(),
+
+      /*
+      ====================================================
+      FAQS
+      ====================================================
+      */
+
+      faqs:
+        cleanedFaqs,
+
+
+      /*
+      ====================================================
       PUBLISHING
       ====================================================
       */
@@ -1557,348 +2050,596 @@ export default function PageForm({
     if (onSubmit) {
       onSubmit(submitData);
     }
+
+
   }
 
   /*
-  ========================================================
-  RENDER
-  ========================================================
+  
+  # RENDER
+  
   */
+  console.log("FormData", formData)
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-8 pb-12"
-    >
-      {formError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {formError}
+  return (<form
+    onSubmit={handleSubmit}
+    className="space-y-8 pb-12"
+  >
+    {formError && (<div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      {formError} </div>
+    )}
+
+
+    {/* =================================================
+      BASIC INFORMATION
+  ================================================= */}
+
+    <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <h2 className="mb-6 text-xl font-bold text-gray-900">
+        Basic Information
+      </h2>
+
+      <div className="grid gap-6 md:grid-cols-2">
+
+        {/* TITLE */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Page Title
+          </label>
+
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="Everest Base Camp Trek"
+            required
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
         </div>
-      )}
 
-      {/* =================================================
-          BASIC INFORMATION
+        {/* SLUG */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Slug
+          </label>
+
+          <input
+            type="text"
+            name="slug"
+            value={formData.slug}
+            onChange={handleChange}
+            placeholder="everest-base-camp-trek"
+            required
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+
+          <p className="mt-1 text-xs text-gray-500">
+            Use lowercase letters, numbers and hyphens.
+          </p>
+        </div>
+
+        {/* PAGE TYPE */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Page Type
+          </label>
+
+          <select
+            value={formData.pageType}
+            onChange={
+              handlePageTypeChange
+            }
+            required
+            disabled={
+              loadingPageTypes
+            }
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          >
+            <option value="">
+              {loadingPageTypes
+                ? "Loading Page Types..."
+                : "Select Page Type"}
+            </option>
+
+            {pageTypes.map(
+              (type) => (
+                <option
+                  key={type._id}
+                  value={type._id}
+                >
+                  {type.name}
+                </option>
+              )
+            )}
+          </select>
+
+          {pageTypeError && (
+            <p className="mt-1 text-xs text-red-600">
+              {pageTypeError}
+            </p>
+          )}
+
+          {selectedPageType?.description && (
+            <p className="mt-2 text-xs text-gray-500">
+              {
+                selectedPageType.description
+              }
+            </p>
+          )}
+        </div>
+
+        {/* REGION */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Region
+          </label>
+
+          <select
+            value={formData.region}
+            onChange={
+              handleRegionChange
+            }
+            disabled={
+              loadingRegions
+            }
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          >
+            <option value="">
+              {loadingRegions
+                ? "Loading Regions..."
+                : "No Region"}
+            </option>
+
+            {regions.map(
+              (region) => (
+                <option
+                  key={region._id}
+                  value={region._id}
+                >
+                  {region.name}
+                </option>
+              )
+            )}
+          </select>
+
+          {regionError && (
+            <p className="mt-1 text-xs text-red-600">
+              {regionError}
+            </p>
+          )}
+
+          <p className="mt-1 text-xs text-gray-500">
+            Region is optional.
+          </p>
+        </div>
+
+        {/* =================================================
+          PAGE IMAGES
       ================================================= */}
 
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 className="mb-6 text-xl font-bold text-gray-900">
-          Basic Information
-        </h2>
+        <div className="md:col-span-2">
 
-        <div className="grid gap-6 md:grid-cols-2">
+          <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
 
-          {/* TITLE */}
+            <div>
+              <h3 className="text-lg font-bold text-gray-900">
+                Page Images
+              </h3>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Page Title
-            </label>
+              <p className="mt-1 text-sm text-gray-500">
+                Add multiple images to this page. The first image is the primary / cover image.
+              </p>
+            </div>
 
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Everest Base Camp Trek"
-              required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* SLUG */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Slug
-            </label>
-
-            <input
-              type="text"
-              name="slug"
-              value={formData.slug}
-              onChange={handleChange}
-              placeholder="everest-base-camp-trek"
-              required
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-
-            <p className="mt-1 text-xs text-gray-500">
-              Use lowercase letters, numbers and hyphens.
-            </p>
-          </div>
-
-          {/* PAGE TYPE */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Page Type
-            </label>
-
-            <select
-              value={formData.pageType}
-              onChange={
-                handlePageTypeChange
-              }
-              required
-              disabled={
-                loadingPageTypes
-              }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            <button
+              type="button"
+              onClick={addImage}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
-              <option value="">
-                {loadingPageTypes
-                  ? "Loading Page Types..."
-                  : "Select Page Type"}
-              </option>
-
-              {pageTypes.map(
-                (type) => (
-                  <option
-                    key={type._id}
-                    value={type._id}
-                  >
-                    {type.name}
-                  </option>
-                )
-              )}
-            </select>
-
-            {pageTypeError && (
-              <p className="mt-1 text-xs text-red-600">
-                {pageTypeError}
-              </p>
-            )}
-
-            {selectedPageType?.description && (
-              <p className="mt-2 text-xs text-gray-500">
-                {
-                  selectedPageType.description
-                }
-              </p>
-            )}
+              + Add Image
+            </button>
           </div>
 
-          {/* REGION */}
+          {formData.images.length === 0 && (
+            <div className="rounded-xl border border-dashed p-8 text-center">
 
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Region
-            </label>
+              <div className="text-4xl">
+                🖼️
+              </div>
 
-            <select
-              value={formData.region}
-              onChange={
-                handleRegionChange
-              }
-              disabled={
-                loadingRegions
-              }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            >
-              <option value="">
-                {loadingRegions
-                  ? "Loading Regions..."
-                  : "No Region"}
-              </option>
-
-              {regions.map(
-                (region) => (
-                  <option
-                    key={region._id}
-                    value={region._id}
-                  >
-                    {region.name}
-                  </option>
-                )
-              )}
-            </select>
-
-            {regionError && (
-              <p className="mt-1 text-xs text-red-600">
-                {regionError}
-              </p>
-            )}
-
-            <p className="mt-1 text-xs text-gray-500">
-              Region is optional.
-            </p>
-          </div>
-
-          {/* IMAGE */}
-
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Image URL
-            </label>
-
-            <input
-              type="url"
-              name="imageUrl"
-              value={
-                formData.imageUrl
-              }
-              onChange={handleChange}
-              placeholder="https://res.cloudinary.com/..."
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* IMAGE PREVIEW */}
-
-          {formData.imageUrl && (
-            <div className="md:col-span-2">
-              <p className="mb-2 text-sm font-medium text-gray-700">
-                Image Preview
+              <p className="mt-3 text-sm font-medium text-gray-700">
+                No images added yet.
               </p>
 
-              <img
-                src={formData.imageUrl}
-                alt="Page preview"
-                className="h-48 w-full rounded-lg border object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display =
-                    "none";
-                }}
-              />
+              <p className="mt-1 text-xs text-gray-500">
+                Add one or more image URLs for this page.
+              </p>
+
+              <button
+                type="button"
+                onClick={addImage}
+                className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                + Add First Image
+              </button>
             </div>
           )}
 
-          {/* DESCRIPTION */}
+          <div className="space-y-5">
 
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Short Description
-            </label>
+            {formData.images.map(
+              (
+                image,
+                index
+              ) => (
+                <div
+                  key={index}
+                  className="rounded-xl border bg-gray-50 p-5"
+                >
 
-            <textarea
-              name="description"
-              value={
-                formData.description
-              }
-              onChange={handleChange}
-              rows="4"
-              placeholder="Write a short description..."
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
+                  {/* IMAGE HEADER */}
+
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                    <div className="flex items-center gap-3">
+
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                        {index + 1}
+                      </span>
+
+                      <div>
+                        <h4 className="font-semibold text-gray-900">
+                          Image{" "}
+                          {index + 1}
+                        </h4>
+
+                        {index === 0 && (
+                          <p className="text-xs font-medium text-green-600">
+                            Primary / Cover Image
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+
+                      {/* MOVE UP */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          moveImage(
+                            index,
+                            "up"
+                          )
+                        }
+                        disabled={
+                          index === 0
+                        }
+                        className="rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        title="Move image up"
+                      >
+                        ↑ Move Up
+                      </button>
+
+                      {/* MOVE DOWN */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          moveImage(
+                            index,
+                            "down"
+                          )
+                        }
+                        disabled={
+                          index ===
+                          formData.images
+                            .length -
+                          1
+                        }
+                        className="rounded-lg border bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                        title="Move image down"
+                      >
+                        ↓ Move Down
+                      </button>
+
+                      {/* REMOVE */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeImage(
+                            index
+                          )
+                        }
+                        className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+
+                    {/* URL */}
+
+                    <div className="md:col-span-2">
+
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Image URL
+                      </label>
+
+                      <input
+                        type="url"
+                        value={
+                          image.url
+                        }
+                        onChange={(e) =>
+                          handleImageChange(
+                            index,
+                            "url",
+                            e.target.value
+                          )
+                        }
+                        placeholder="https://res.cloudinary.com/..."
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+
+                    </div>
+
+                    {/* ALT */}
+
+                    <div className="md:col-span-2">
+
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Image Alt Text
+                      </label>
+
+                      <input
+                        type="text"
+                        value={
+                          image.alt
+                        }
+                        onChange={(e) =>
+                          handleImageChange(
+                            index,
+                            "alt",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Everest Base Camp Trek Nepal"
+                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                      />
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        Describe the image for accessibility and SEO.
+                      </p>
+
+                    </div>
+
+                    {/* PREVIEW */}
+
+                    <div className="md:col-span-2">
+
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
+                        Image Preview
+                      </label>
+
+                      {image.url ? (
+                        <div className="overflow-hidden rounded-xl border bg-white">
+
+                          <img
+                            src={
+                              image.url
+                            }
+                            alt={
+                              image.alt ||
+                              `Page image ${index + 1
+                              }`
+                            }
+                            className="h-64 w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display =
+                                "none";
+                            }}
+                          />
+
+                        </div>
+                      ) : (
+                        <div className="flex h-48 items-center justify-center rounded-xl border border-dashed bg-white">
+
+                          <p className="text-sm text-gray-400">
+                            Image preview will appear here.
+                          </p>
+
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+
+                </div>
+              )
+            )}
+
           </div>
 
-          {/* CONTENT */}
+          {formData.images.length > 1 && (
+            <div className="mt-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-700">
 
-          <div className="md:col-span-2">
+              <strong>
+                Image order:
+              </strong>{" "}
+              The first image is used as the primary / cover image.
+              Use <strong>Move Up</strong> and{" "}
+              <strong>Move Down</strong> to change the order.
+
+            </div>
+          )}
+        </div>
+
+        {/* DESCRIPTION */}
+
+        <div className="md:col-span-2">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Short Description
+          </label>
+
+          <textarea
+            name="description"
+            value={
+              formData.description
+            }
+            onChange={handleChange}
+            rows="4"
+            placeholder="Write a short description..."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* CONTENT/ Overview */}
+
+        <div className="md:col-span-2">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Overview
+          </label>
+
+          <textarea
+            name="content"
+            value={formData.content}
+            onChange={handleChange}
+            rows="8"
+            placeholder="Write page overview..."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Highlight */}
+
+      <div className="md:col-span-2">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Highlight
+          </label>
+
+          <textarea
+            name="highlight"
+            value={formData.highlight}
+            onChange={handleChange}
+            rows="8"
+            placeholder="Write page highlight..."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+     
+    </section>
+        
+   
+
+    {/* =================================================
+      PACKAGE PRICING
+  ================================================= */}
+
+    {isExperience && (
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900">
+            Package Pricing
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Set fixed or PAX-based pricing.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+
+          {/* CURRENCY */}
+
+          <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Main Content
+              Currency
             </label>
 
-            <textarea
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              rows="8"
-              placeholder="Write page content..."
+            <select
+              name="currency"
+              value={
+                formData.price.currency
+              }
+              onChange={
+                handlePriceChange
+              }
               className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
+            >
+              <option value="USD">
+                USD - US Dollar
+              </option>
+
+              <option value="EUR">
+                EUR - Euro
+              </option>
+
+              <option value="GBP">
+                GBP - British Pound
+              </option>
+
+              <option value="AUD">
+                AUD - Australian Dollar
+              </option>
+
+              <option value="CAD">
+                CAD - Canadian Dollar
+              </option>
+
+              <option value="NPR">
+                NPR - Nepalese Rupee
+              </option>
+            </select>
+          </div>
+
+          {/* PRICING TYPE */}
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Pricing Type
+            </label>
+
+            <select
+              name="pricingType"
+              value={
+                formData.price
+                  .pricingType
+              }
+              onChange={
+                handlePriceChange
+              }
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="fixed">
+                Fixed Price
+              </option>
+
+              <option value="pax_based">
+                PAX Based Pricing
+              </option>
+            </select>
           </div>
         </div>
-      </section>
 
-      {/* =================================================
-          PACKAGE PRICING
+        {/* =================================================
+          FIXED PRICE
       ================================================= */}
 
-      {isExperience && (
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
-
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              Package Pricing
-            </h2>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Set fixed or PAX-based pricing.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-
-            {/* CURRENCY */}
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Currency
-              </label>
-
-              <select
-                name="currency"
-                value={
-                  formData.price.currency
-                }
-                onChange={
-                  handlePriceChange
-                }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              >
-                <option value="USD">
-                  USD - US Dollar
-                </option>
-
-                <option value="EUR">
-                  EUR - Euro
-                </option>
-
-                <option value="GBP">
-                  GBP - British Pound
-                </option>
-
-                <option value="AUD">
-                  AUD - Australian Dollar
-                </option>
-
-                <option value="CAD">
-                  CAD - Canadian Dollar
-                </option>
-
-                <option value="NPR">
-                  NPR - Nepalese Rupee
-                </option>
-              </select>
-            </div>
-
-            {/* PRICING TYPE */}
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Pricing Type
-              </label>
-
-              <select
-                name="pricingType"
-                value={
-                  formData.price
-                    .pricingType
-                }
-                onChange={
-                  handlePriceChange
-                }
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              >
-                <option value="fixed">
-                  Fixed Price
-                </option>
-
-                <option value="pax_based">
-                  PAX Based Pricing
-                </option>
-              </select>
-            </div>
-          </div>
-
-          {/* =================================================
-              FIXED PRICE
-          ================================================= */}
-
-          {formData.price
-            .pricingType ===
-            "fixed" && (
+        {formData.price
+          .pricingType ===
+          "fixed" && (
             <div className="mt-6 rounded-lg bg-gray-50 p-5">
 
               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -1937,13 +2678,13 @@ export default function PageForm({
             </div>
           )}
 
-          {/* =================================================
-              PAX BASED
-          ================================================= */}
+        {/* =================================================
+          PAX BASED
+      ================================================= */}
 
-          {formData.price
-            .pricingType ===
-            "pax_based" && (
+        {formData.price
+          .pricingType ===
+          "pax_based" && (
             <div className="mt-6">
 
               <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -1972,23 +2713,23 @@ export default function PageForm({
               {formData.price
                 .paxPrices.length ===
                 0 && (
-                <div className="rounded-lg border border-dashed p-8 text-center">
+                  <div className="rounded-lg border border-dashed p-8 text-center">
 
-                  <p className="text-sm text-gray-500">
-                    No PAX pricing tiers added.
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      No PAX pricing tiers added.
+                    </p>
 
-                  <button
-                    type="button"
-                    onClick={
-                      addPaxTier
-                    }
-                    className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
-                  >
-                    Add your first price tier
-                  </button>
-                </div>
-              )}
+                    <button
+                      type="button"
+                      onClick={
+                        addPaxTier
+                      }
+                      className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+                    >
+                      Add your first price tier
+                    </button>
+                  </div>
+                )}
 
               <div className="space-y-4">
 
@@ -2124,453 +2865,453 @@ export default function PageForm({
               </div>
             </div>
           )}
-        </section>
-      )}
+      </section>
+    )}
 
-      {/* =================================================
-          TREK DETAILS
-      ================================================= */}
+    {/* =================================================
+      TREK DETAILS
+  ================================================= */}
 
-      {isTrek && (
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+    {isTrek && (
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
 
-          <h2 className="mb-6 text-xl font-bold text-gray-900">
-            Trek Details
-          </h2>
+        <h2 className="mb-6 text-xl font-bold text-gray-900">
+          Trek Details
+        </h2>
 
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
 
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Duration
-              </label>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Duration
+            </label>
 
-              <input
-                type="text"
-                name="duration"
-                value={
-                  formData.trekDetails
-                    .duration
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="14 Days"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Difficulty
-              </label>
-
-              <input
-                type="text"
-                name="difficulty"
-                value={
-                  formData.trekDetails
-                    .difficulty
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Moderate"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Maximum Altitude
-              </label>
-
-              <input
-                type="text"
-                name="maxAltitude"
-                value={
-                  formData.trekDetails
-                    .maxAltitude
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="5,364m"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Best Season
-              </label>
-
-              <input
-                type="text"
-                name="bestSeason"
-                value={
-                  formData.trekDetails
-                    .bestSeason
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="March - May, September - November"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Starting Point
-              </label>
-
-              <input
-                type="text"
-                name="startingPoint"
-                value={
-                  formData.trekDetails
-                    .startingPoint
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Kathmandu"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Ending Point
-              </label>
-
-              <input
-                type="text"
-                name="endingPoint"
-                value={
-                  formData.trekDetails
-                    .endingPoint
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Kathmandu"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Accommodation
-              </label>
-
-              <input
-                type="text"
-                name="accommodation"
-                value={
-                  formData.trekDetails
-                    .accommodation
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Tea House / Lodge"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Meals
-              </label>
-
-              <input
-                type="text"
-                name="meals"
-                value={
-                  formData.trekDetails
-                    .meals
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Breakfast, Lunch and Dinner"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Group Size
-              </label>
-
-              <input
-                type="text"
-                name="groupSize"
-                value={
-                  formData.trekDetails
-                    .groupSize
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="2 - 15 people"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Permits
-              </label>
-
-              <input
-                type="text"
-                name="permits"
-                value={
-                  formData.trekDetails
-                    .permits
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="TIMS, National Park Permit"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Transportation
-              </label>
-
-              <input
-                type="text"
-                name="transportation"
-                value={
-                  formData.trekDetails
-                    .transportation
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Private Vehicle / Flight"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Guide
-              </label>
-
-              <input
-                type="text"
-                name="guide"
-                value={
-                  formData.trekDetails
-                    .guide
-                }
-                onChange={
-                  handleTrekChange
-                }
-                placeholder="Professional Licensed Guide"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* =================================================
-          TOUR DETAILS
-      ================================================= */}
-
-      {isTour && (
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
-
-          <h2 className="mb-6 text-xl font-bold text-gray-900">
-            Tour Details
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-2">
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Duration
-              </label>
-
-              <input
-                type="text"
-                name="duration"
-                value={
-                  formData.tourDetails
-                    .duration
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="7 Days"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Tour Type
-              </label>
-
-              <input
-                type="text"
-                name="tourType"
-                value={
-                  formData.tourDetails
-                    .tourType
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="Cultural Tour"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Destination
-              </label>
-
-              <input
-                type="text"
-                name="destination"
-                value={
-                  formData.tourDetails
-                    .destination
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="Kathmandu, Pokhara"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Best Season
-              </label>
-
-              <input
-                type="text"
-                name="bestSeason"
-                value={
-                  formData.tourDetails
-                    .bestSeason
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="October - May"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Group Size
-              </label>
-
-              <input
-                type="text"
-                name="groupSize"
-                value={
-                  formData.tourDetails
-                    .groupSize
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="2 - 20 people"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Accommodation
-              </label>
-
-              <input
-                type="text"
-                name="accommodation"
-                value={
-                  formData.tourDetails
-                    .accommodation
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="Hotel"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Transportation
-              </label>
-
-              <input
-                type="text"
-                name="transportation"
-                value={
-                  formData.tourDetails
-                    .transportation
-                }
-                onChange={
-                  handleTourChange
-                }
-                placeholder="Private Vehicle"
-                className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* =================================================
-          ITINERARY
-      ================================================= */}
-
-      {isExperience && (
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
-
-          <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Itinerary
-              </h2>
-
-              <p className="text-sm text-gray-500">
-                Add daily activities, meals, accommodation and altitude.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={
-                addItinerary
+            <input
+              type="text"
+              name="duration"
+              value={
+                formData.trekDetails
+                  .duration
               }
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              + Add Day
-            </button>
+              onChange={
+                handleTrekChange
+              }
+              placeholder="14 Days"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
           </div>
 
-          {formData.itinerary.length ===
-            0 && (
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Difficulty
+            </label>
+
+            <input
+              type="text"
+              name="difficulty"
+              value={
+                formData.trekDetails
+                  .difficulty
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Moderate"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Maximum Altitude
+            </label>
+
+            <input
+              type="text"
+              name="maxAltitude"
+              value={
+                formData.trekDetails
+                  .maxAltitude
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="5,364m"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Best Season
+            </label>
+
+            <input
+              type="text"
+              name="bestSeason"
+              value={
+                formData.trekDetails
+                  .bestSeason
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="March - May, September - November"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Starting Point
+            </label>
+
+            <input
+              type="text"
+              name="startingPoint"
+              value={
+                formData.trekDetails
+                  .startingPoint
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Kathmandu"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Ending Point
+            </label>
+
+            <input
+              type="text"
+              name="endingPoint"
+              value={
+                formData.trekDetails
+                  .endingPoint
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Kathmandu"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Accommodation
+            </label>
+
+            <input
+              type="text"
+              name="accommodation"
+              value={
+                formData.trekDetails
+                  .accommodation
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Tea House / Lodge"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Meals
+            </label>
+
+            <input
+              type="text"
+              name="meals"
+              value={
+                formData.trekDetails
+                  .meals
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Breakfast, Lunch and Dinner"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Group Size
+            </label>
+
+            <input
+              type="text"
+              name="groupSize"
+              value={
+                formData.trekDetails
+                  .groupSize
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="2 - 15 people"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Permits
+            </label>
+
+            <input
+              type="text"
+              name="permits"
+              value={
+                formData.trekDetails
+                  .permits
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="TIMS, National Park Permit"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Transportation
+            </label>
+
+            <input
+              type="text"
+              name="transportation"
+              value={
+                formData.trekDetails
+                  .transportation
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Private Vehicle / Flight"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Guide
+            </label>
+
+            <input
+              type="text"
+              name="guide"
+              value={
+                formData.trekDetails
+                  .guide
+              }
+              onChange={
+                handleTrekChange
+              }
+              placeholder="Professional Licensed Guide"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </section>
+    )}
+
+    {/* =================================================
+      TOUR DETAILS
+  ================================================= */}
+
+    {isTour && (
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+        <h2 className="mb-6 text-xl font-bold text-gray-900">
+          Tour Details
+        </h2>
+
+        <div className="grid gap-6 md:grid-cols-2">
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Duration
+            </label>
+
+            <input
+              type="text"
+              name="duration"
+              value={
+                formData.tourDetails
+                  .duration
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="7 Days"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Tour Type
+            </label>
+
+            <input
+              type="text"
+              name="tourType"
+              value={
+                formData.tourDetails
+                  .tourType
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="Cultural Tour"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Destination
+            </label>
+
+            <input
+              type="text"
+              name="destination"
+              value={
+                formData.tourDetails
+                  .destination
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="Kathmandu, Pokhara"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Best Season
+            </label>
+
+            <input
+              type="text"
+              name="bestSeason"
+              value={
+                formData.tourDetails
+                  .bestSeason
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="October - May"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Group Size
+            </label>
+
+            <input
+              type="text"
+              name="groupSize"
+              value={
+                formData.tourDetails
+                  .groupSize
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="2 - 20 people"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Accommodation
+            </label>
+
+            <input
+              type="text"
+              name="accommodation"
+              value={
+                formData.tourDetails
+                  .accommodation
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="Hotel"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Transportation
+            </label>
+
+            <input
+              type="text"
+              name="transportation"
+              value={
+                formData.tourDetails
+                  .transportation
+              }
+              onChange={
+                handleTourChange
+              }
+              placeholder="Private Vehicle"
+              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            />
+          </div>
+        </div>
+      </section>
+    )}
+
+    {/* =================================================
+      ITINERARY
+  ================================================= */}
+
+    {isExperience && (
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">
+              Itinerary
+            </h2>
+
+            <p className="text-sm text-gray-500">
+              Add daily activities, meals, accommodation and altitude.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={
+              addItinerary
+            }
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            + Add Day
+          </button>
+        </div>
+
+        {formData.itinerary.length ===
+          0 && (
             <div className="rounded-lg border border-dashed p-8 text-center">
 
               <p className="text-sm text-gray-500">
@@ -2589,684 +3330,870 @@ export default function PageForm({
             </div>
           )}
 
-          <div className="space-y-5">
+        <div className="space-y-5">
 
-            {formData.itinerary.map(
+          {formData.itinerary.map(
+            (
+              item,
+              index
+            ) => (
+              <div
+                key={index}
+                className="rounded-xl border bg-gray-50 p-5"
+              >
+
+                <div className="mb-4 flex items-center justify-between">
+
+                  <h3 className="font-semibold text-gray-900">
+                    Day{" "}
+                    {index + 1}
+                  </h3>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeItinerary(
+                        index
+                      )
+                    }
+                    className="text-sm font-medium text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+
+                  {/* DAY */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Day
+                    </label>
+
+                    <input
+                      type="number"
+                      min="1"
+                      value={
+                        item.day
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "day",
+                          e.target.value
+                        )
+                      }
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* ALTITUDE */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Altitude
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        item.altitude
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "altitude",
+                          e.target.value
+                        )
+                      }
+                      placeholder="3,440m"
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* TITLE */}
+
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Day Title
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        item.title
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "title",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Kathmandu to Lukla"
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* DESCRIPTION */}
+
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Description
+                    </label>
+
+                    <textarea
+                      value={
+                        item.description
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      rows="4"
+                      placeholder="Describe the activities for this day..."
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* ACCOMMODATION */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Accommodation
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        item.accommodation
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "accommodation",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Tea House / Hotel"
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* MEAL */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Meal
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        item.meal
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "meal",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Breakfast, Lunch, Dinner"
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* WALKING HOURS */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Travel Hours
+                    </label>
+
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={
+                        item.walkingHours
+                      }
+                      onChange={(e) =>
+                        handleItineraryChange(
+                          index,
+                          "walkingHours",
+                          e.target.value
+                        )
+                      }
+                      placeholder="5"
+                      className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+      </section>
+    )}
+
+    {/* =================================================
+      INCLUSIONS / EXCLUSIONS
+  ================================================= */}
+
+    {isExperience && (
+      <section className="grid gap-8 lg:grid-cols-2">
+
+        {/* INCLUSIONS */}
+
+        <div className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <div className="mb-5 flex items-center justify-between">
+
+            <h2 className="text-xl font-bold text-gray-900">
+              Inclusions
+            </h2>
+
+            <button
+              type="button"
+              onClick={
+                addInclusion
+              }
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              + Add
+            </button>
+          </div>
+
+          <div className="space-y-3">
+
+            {formData.inclusions.map(
               (
                 item,
                 index
               ) => (
                 <div
                   key={index}
-                  className="rounded-xl border bg-gray-50 p-5"
+                  className="flex gap-2"
                 >
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) =>
+                      handleInclusionChange(
+                        index,
+                        e.target.value
+                      )
+                    }
+                    placeholder="Airport pickup"
+                    className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+                  />
 
-                  <div className="mb-4 flex items-center justify-between">
-
-                    <h3 className="font-semibold text-gray-900">
-                      Day{" "}
-                      {index + 1}
-                    </h3>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeItinerary(
-                          index
-                        )
-                      }
-                      className="text-sm font-medium text-red-600 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-
-                    {/* DAY */}
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Day
-                      </label>
-
-                      <input
-                        type="number"
-                        min="1"
-                        value={
-                          item.day
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "day",
-                            e.target.value
-                          )
-                        }
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* ALTITUDE */}
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Altitude
-                      </label>
-
-                      <input
-                        type="text"
-                        value={
-                          item.altitude
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "altitude",
-                            e.target.value
-                          )
-                        }
-                        placeholder="3,440m"
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* TITLE */}
-
-                    <div className="md:col-span-2">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Day Title
-                      </label>
-
-                      <input
-                        type="text"
-                        value={
-                          item.title
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "title",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Kathmandu to Lukla"
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* DESCRIPTION */}
-
-                    <div className="md:col-span-2">
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Description
-                      </label>
-
-                      <textarea
-                        value={
-                          item.description
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        rows="4"
-                        placeholder="Describe the activities for this day..."
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* ACCOMMODATION */}
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Accommodation
-                      </label>
-
-                      <input
-                        type="text"
-                        value={
-                          item.accommodation
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "accommodation",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Tea House / Hotel"
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* MEAL */}
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Meal
-                      </label>
-
-                      <input
-                        type="text"
-                        value={
-                          item.meal
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "meal",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Breakfast, Lunch, Dinner"
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* WALKING HOURS */}
-
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Walking Hours
-                      </label>
-
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={
-                          item.walkingHours
-                        }
-                        onChange={(e) =>
-                          handleItineraryChange(
-                            index,
-                            "walkingHours",
-                            e.target.value
-                          )
-                        }
-                        placeholder="5"
-                        className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeInclusion(
+                        index
+                      )
+                    }
+                    className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
+                  >
+                    ×
+                  </button>
                 </div>
               )
             )}
-          </div>
-        </section>
-      )}
 
-      {/* =================================================
-          INCLUSIONS / EXCLUSIONS
-      ================================================= */}
-
-      {isExperience && (
-        <section className="grid gap-8 lg:grid-cols-2">
-
-          {/* INCLUSIONS */}
-
-          <div className="rounded-xl border bg-white p-6 shadow-sm">
-
-            <div className="mb-5 flex items-center justify-between">
-
-              <h2 className="text-xl font-bold text-gray-900">
-                Inclusions
-              </h2>
-
-              <button
-                type="button"
-                onClick={
-                  addInclusion
-                }
-                className="text-sm font-semibold text-blue-600 hover:underline"
-              >
-                + Add
-              </button>
-            </div>
-
-            <div className="space-y-3">
-
-              {formData.inclusions.map(
-                (
-                  item,
-                  index
-                ) => (
-                  <div
-                    key={index}
-                    className="flex gap-2"
-                  >
-                    <input
-                      type="text"
-                      value={item}
-                      onChange={(e) =>
-                        handleInclusionChange(
-                          index,
-                          e.target.value
-                        )
-                      }
-                      placeholder="Airport pickup"
-                      className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeInclusion(
-                          index
-                        )
-                      }
-                      className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )
-              )}
-
-              {formData.inclusions
-                .length === 0 && (
+            {formData.inclusions
+              .length === 0 && (
                 <p className="text-sm text-gray-500">
                   No inclusions added.
                 </p>
               )}
-            </div>
+          </div>
+        </div>
+
+        {/* EXCLUSIONS */}
+
+        <div className="rounded-xl border bg-white p-6 shadow-sm">
+
+          <div className="mb-5 flex items-center justify-between">
+
+            <h2 className="text-xl font-bold text-gray-900">
+              Exclusions
+            </h2>
+
+            <button
+              type="button"
+              onClick={
+                addExclusion
+              }
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              + Add
+            </button>
           </div>
 
-          {/* EXCLUSIONS */}
+          <div className="space-y-3">
 
-          <div className="rounded-xl border bg-white p-6 shadow-sm">
+            {formData.exclusions.map(
+              (
+                item,
+                index
+              ) => (
+                <div
+                  key={index}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) =>
+                      handleExclusionChange(
+                        index,
+                        e.target.value
+                      )
+                    }
+                    placeholder="International airfare"
+                    className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+                  />
 
-            <div className="mb-5 flex items-center justify-between">
-
-              <h2 className="text-xl font-bold text-gray-900">
-                Exclusions
-              </h2>
-
-              <button
-                type="button"
-                onClick={
-                  addExclusion
-                }
-                className="text-sm font-semibold text-blue-600 hover:underline"
-              >
-                + Add
-              </button>
-            </div>
-
-            <div className="space-y-3">
-
-              {formData.exclusions.map(
-                (
-                  item,
-                  index
-                ) => (
-                  <div
-                    key={index}
-                    className="flex gap-2"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeExclusion(
+                        index
+                      )
+                    }
+                    className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
                   >
-                    <input
-                      type="text"
-                      value={item}
-                      onChange={(e) =>
-                        handleExclusionChange(
-                          index,
-                          e.target.value
-                        )
-                      }
-                      placeholder="International airfare"
-                      className="flex-1 rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-                    />
+                    ×
+                  </button>
+                </div>
+              )
+            )}
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        removeExclusion(
-                          index
-                        )
-                      }
-                      className="rounded-lg border px-3 text-red-600 hover:bg-red-50"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )
-              )}
-
-              {formData.exclusions
-                .length === 0 && (
+            {formData.exclusions
+              .length === 0 && (
                 <p className="text-sm text-gray-500">
                   No exclusions added.
                 </p>
               )}
-            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+    )}
 
-      {/* =================================================
-          IMPORTANT INFORMATION
-      ================================================= */}
+    {/* =================================================
+      IMPORTANT INFORMATION
+  ================================================= */}
 
-      {isExperience && (
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+    {isExperience && (
+      <section className="rounded-xl border bg-white p-6 shadow-sm">
 
-          <h2 className="mb-5 text-xl font-bold text-gray-900">
-            Important Information
+        <h2 className="mb-5 text-xl font-bold text-gray-900">
+          Important Information
+        </h2>
+
+        <textarea
+          name="importantInformation"
+          value={
+            formData.importantInformation
+          }
+          onChange={
+            handleChange
+          }
+          rows="7"
+          placeholder="Permits, visa information, travel insurance, fitness requirements, etc."
+          className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+        />
+      </section>
+    )}
+
+    {/* =================================================
+      Map Image and FAQ
+  ================================================= */}
+
+
+    <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+
+
+
+      {/* FAQ IMAGE URL */}
+
+      <div className="mb-8 rounded-xl border bg-gray-50 p-5">
+
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Map Image URL , Trek/Tour-Map
+        </label>
+
+        <input
+          type="url"
+          value={formData.faqImageUrl}
+          onChange={handleFaqImageUrlChange}
+          placeholder="https://res.cloudinary.com/..."
+          className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+        />
+
+        <p className="mt-2 text-xs text-gray-500">
+          Optional. This image can be displayed on the public page.
+        </p>
+        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          {formData.faqImageUrl && (
+            <div className="mt-4">
+
+              <img
+                src={formData.faqImageUrl}
+                alt="FAQ section preview"
+                className="h-48 w-full rounded-lg border object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+
+            </div>
+          )}
+
+
+         
+
+        </div>
+        <button
+            type="button"
+            onClick={addFaq}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            + Add FAQ
+          </button>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">
+            Frequently Asked Questions
           </h2>
 
-          <textarea
-            name="importantInformation"
+          <p className="mt-1 text-sm text-gray-500">
+            Add common questions and answers for this page.
+          </p>
+        </div>
+
+
+
+      </div>
+
+
+      {/* EMPTY FAQ */}
+
+      {formData.faqs.length === 0 && (
+
+        <div className="rounded-lg border border-dashed p-8 text-center">
+
+          <p className="text-sm text-gray-500">
+            No FAQ items added.
+          </p>
+
+          <button
+            type="button"
+            onClick={addFaq}
+            className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+          >
+            Add your first FAQ
+          </button>
+
+        </div>
+
+      )}
+
+
+      {/* FAQ ITEMS */}
+
+      <div className="space-y-5">
+
+        {formData.faqs.map(
+          (faq, index) => (
+
+            <div
+              key={index}
+              className="rounded-xl border bg-gray-50 p-5"
+            >
+
+              <div className="mb-4 flex items-center justify-between">
+
+                <h3 className="font-semibold text-gray-900">
+                  FAQ {index + 1}
+                </h3>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    removeFaq(index)
+                  }
+                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                >
+                  Remove
+                </button>
+
+              </div>
+
+
+              {/* QUESTION */}
+
+              <div className="mb-4">
+
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Question
+                </label>
+
+                <input
+                  type="text"
+                  value={faq.question}
+                  onChange={(e) =>
+                    handleFaqChange(
+                      index,
+                      "question",
+                      e.target.value
+                    )
+                  }
+                  placeholder="What is the best season for this trek?"
+                  className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                />
+
+              </div>
+
+
+              {/* ANSWER */}
+
+              <div>
+
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Answer
+                </label>
+
+                <textarea
+                  value={faq.answer}
+                  onChange={(e) =>
+                    handleFaqChange(
+                      index,
+                      "answer",
+                      e.target.value
+                    )
+                  }
+                  rows="4"
+                  placeholder="Write the answer to this frequently asked question..."
+                  className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+                />
+
+              </div>
+
+            </div>
+
+          )
+        )}
+
+      </div>
+
+    </section>
+
+
+    {/* =================================================
+      SEO
+  ================================================= */}
+
+    <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+      <h2 className="mb-6 text-xl font-bold text-gray-900">
+        SEO Settings
+      </h2>
+
+      <div className="space-y-6">
+
+        {/* META TITLE */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Meta Title
+          </label>
+
+          <input
+            type="text"
+            name="metaTitle"
             value={
-              formData.importantInformation
+              formData.seo
+                .metaTitle
+            }
+            onChange={
+              handleSeoChange
+            }
+            placeholder="Everest Base Camp Trek | Trek Nepal"
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* META DESCRIPTION */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Meta Description
+          </label>
+
+          <textarea
+            name="metaDescription"
+            value={
+              formData.seo
+                .metaDescription
+            }
+            onChange={
+              handleSeoChange
+            }
+            rows="4"
+            placeholder="Explore Everest Base Camp with our professional trekking package..."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* KEYWORDS */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Keywords
+          </label>
+
+          <input
+            type="text"
+            value={
+              formData.seo.keywords.join(
+                ", "
+              )
+            }
+            onChange={(e) => {
+              const keywords =
+                e.target.value
+                  .split(",")
+                  .map((item) =>
+                    item.trim()
+                  )
+                  .filter(Boolean);
+
+              setFormData(
+                (prev) => ({
+                  ...prev,
+
+                  seo: {
+                    ...prev.seo,
+                    keywords,
+                  },
+                })
+              );
+            }}
+            placeholder="everest trek, nepal trekking, everest base camp"
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+
+          <p className="mt-1 text-xs text-gray-500">
+            Separate keywords with commas.
+          </p>
+        </div>
+
+        {/* OG TITLE */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Open Graph Title
+          </label>
+
+          <input
+            type="text"
+            name="ogTitle"
+            value={
+              formData.seo
+                .ogTitle
+            }
+            onChange={
+              handleSeoChange
+            }
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* OG DESCRIPTION */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Open Graph Description
+          </label>
+
+          <textarea
+            name="ogDescription"
+            value={
+              formData.seo
+                .ogDescription
+            }
+            onChange={
+              handleSeoChange
+            }
+            rows="4"
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* OG IMAGE */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Open Graph Image
+          </label>
+
+          <input
+            type="url"
+            name="ogImage"
+            value={
+              formData.seo
+                .ogImage
+            }
+            onChange={
+              handleSeoChange
+            }
+            placeholder="https://res.cloudinary.com/..."
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* CANONICAL */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Canonical URL
+          </label>
+
+          <input
+            type="url"
+            name="canonicalUrl"
+            value={
+              formData.seo
+                .canonicalUrl
+            }
+            onChange={
+              handleSeoChange
+            }
+            placeholder="https://example.com/everest-base-camp-trek"
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* NO INDEX */}
+
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
+
+          <input
+            type="checkbox"
+            name="noIndex"
+            checked={
+              formData.seo
+                .noIndex
+            }
+            onChange={
+              handleSeoChange
+            }
+            className="h-5 w-5 rounded"
+          />
+
+          <span className="text-sm text-gray-700">
+            Prevent search engines from indexing this page.
+          </span>
+        </label>
+      </div>
+    </section>
+
+    {/* =================================================
+      PUBLISHING
+  ================================================= */}
+
+    <section className="rounded-xl border bg-white p-6 shadow-sm">
+
+      <h2 className="mb-6 text-xl font-bold text-gray-900">
+        Publishing
+      </h2>
+
+      <div className="grid gap-6 md:grid-cols-2">
+
+        {/* ORDER */}
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Display Order
+          </label>
+
+          <input
+            type="number"
+            name="order"
+            value={
+              formData.order
             }
             onChange={
               handleChange
             }
-            rows="7"
-            placeholder="Permits, visa information, travel insurance, fitness requirements, etc."
+            min="0"
+            step="1"
             className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
           />
-        </section>
-      )}
+        </div>
 
-      {/* =================================================
-          SEO
-      ================================================= */}
+        {/* PUBLISHED */}
 
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
 
-        <h2 className="mb-6 text-xl font-bold text-gray-900">
-          SEO Settings
-        </h2>
-
-        <div className="space-y-6">
-
-          {/* META TITLE */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Meta Title
-            </label>
-
-            <input
-              type="text"
-              name="metaTitle"
-              value={
-                formData.seo
-                  .metaTitle
-              }
-              onChange={
-                handleSeoChange
-              }
-              placeholder="Everest Base Camp Trek | Trek Nepal"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* META DESCRIPTION */}
+          <input
+            type="checkbox"
+            name="published"
+            checked={
+              formData.published
+            }
+            onChange={
+              handleChange
+            }
+            className="h-5 w-5 rounded"
+          />
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Meta Description
-            </label>
+            <p className="font-medium text-gray-900">
+              Publish Page
+            </p>
 
-            <textarea
-              name="metaDescription"
-              value={
-                formData.seo
-                  .metaDescription
-              }
-              onChange={
-                handleSeoChange
-              }
-              rows="4"
-              placeholder="Explore Everest Base Camp with our professional trekking package..."
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* KEYWORDS */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Keywords
-            </label>
-
-            <input
-              type="text"
-              value={
-                formData.seo.keywords.join(
-                  ", "
-                )
-              }
-              onChange={(e) => {
-                const keywords =
-                  e.target.value
-                    .split(",")
-                    .map((item) =>
-                      item.trim()
-                    )
-                    .filter(Boolean);
-
-                setFormData(
-                  (prev) => ({
-                    ...prev,
-
-                    seo: {
-                      ...prev.seo,
-                      keywords,
-                    },
-                  })
-                );
-              }}
-              placeholder="everest trek, nepal trekking, everest base camp"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-
-            <p className="mt-1 text-xs text-gray-500">
-              Separate keywords with commas.
+            <p className="text-sm text-gray-500">
+              Make this page visible on the website.
             </p>
           </div>
-
-          {/* OG TITLE */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Open Graph Title
-            </label>
-
-            <input
-              type="text"
-              name="ogTitle"
-              value={
-                formData.seo
-                  .ogTitle
-              }
-              onChange={
-                handleSeoChange
-              }
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* OG DESCRIPTION */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Open Graph Description
-            </label>
-
-            <textarea
-              name="ogDescription"
-              value={
-                formData.seo
-                  .ogDescription
-              }
-              onChange={
-                handleSeoChange
-              }
-              rows="4"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* OG IMAGE */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Open Graph Image
-            </label>
-
-            <input
-              type="url"
-              name="ogImage"
-              value={
-                formData.seo
-                  .ogImage
-              }
-              onChange={
-                handleSeoChange
-              }
-              placeholder="https://res.cloudinary.com/..."
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* CANONICAL */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Canonical URL
-            </label>
-
-            <input
-              type="url"
-              name="canonicalUrl"
-              value={
-                formData.seo
-                  .canonicalUrl
-              }
-              onChange={
-                handleSeoChange
-              }
-              placeholder="https://example.com/everest-base-camp-trek"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* NO INDEX */}
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
-
-            <input
-              type="checkbox"
-              name="noIndex"
-              checked={
-                formData.seo
-                  .noIndex
-              }
-              onChange={
-                handleSeoChange
-              }
-              className="h-5 w-5 rounded"
-            />
-
-            <span className="text-sm text-gray-700">
-              Prevent search engines from indexing this page.
-            </span>
-          </label>
-        </div>
-      </section>
-
-      {/* =================================================
-          PUBLISHING
-      ================================================= */}
-
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
-
-        <h2 className="mb-6 text-xl font-bold text-gray-900">
-          Publishing
-        </h2>
-
-        <div className="grid gap-6 md:grid-cols-2">
-
-          {/* ORDER */}
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
-              Display Order
-            </label>
-
-            <input
-              type="number"
-              name="order"
-              value={
-                formData.order
-              }
-              onChange={
-                handleChange
-              }
-              min="0"
-              step="1"
-              className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          {/* PUBLISHED */}
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border p-4">
-
-            <input
-              type="checkbox"
-              name="published"
-              checked={
-                formData.published
-              }
-              onChange={
-                handleChange
-              }
-              className="h-5 w-5 rounded"
-            />
-
-            <div>
-              <p className="font-medium text-gray-900">
-                Publish Page
-              </p>
-
-              <p className="text-sm text-gray-500">
-                Make this page visible on the website.
-              </p>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      {/* =================================================
-          SUBMIT
-      ================================================= */}
-
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-
-        <button
-          type="submit"
-          disabled={
-            loading ||
-            loadingPageTypes ||
-            !formData.pageType
-          }
-          className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading
-            ? "Saving..."
-            : initialData._id
-              ? "Update Page"
-              : "Create Page"}
-        </button>
+        </label>
       </div>
-    </form>
+    </section>
+
+    {/* =================================================
+      SUBMIT
+  ================================================= */}
+
+    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+
+      <button
+        type="submit"
+        disabled={
+          loading ||
+          loadingPageTypes ||
+          !formData.pageType
+        }
+        className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {loading
+          ? "Saving..."
+          : initialData._id
+            ? "Update Page"
+            : "Create Page"}
+      </button>
+    </div>
+  </form>
+
+
   );
 }

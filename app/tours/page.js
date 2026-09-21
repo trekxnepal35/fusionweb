@@ -3,6 +3,7 @@ import Link from "next/link";
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
+import Region from "@/models/Region";
 
 
 /*
