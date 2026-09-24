@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 async function getTermsPage() {
-    const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+    const BASE_URL = process.env.BASE_URL
     const TERM_PAGE_ID = "6ab2718203263c54378f4e21";
 
     const res = await fetch(
-        `${NEXT_PUBLIC_BASE_URL}/api/pages/${TERM_PAGE_ID}`,
+        `${BASE_URL}/api/pages/${TERM_PAGE_ID}`,
         {
             cache: "no-store",
         }

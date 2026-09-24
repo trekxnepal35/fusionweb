@@ -1,11 +1,11 @@
 import Link from "next/link";
 
 async function getFaqsPage() {
-    const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+    const BASE_URL = process.env.BASE_URL
     const FAQ_PAGE_ID = "6ab2aedffcdf7346c1cfab11";
 
     const res = await fetch(
-        `${NEXT_PUBLIC_BASE_URL}/api/pages/${FAQ_PAGE_ID}`,
+        `${BASE_URL}/api/pages/${FAQ_PAGE_ID}`,
         {
             cache: "no-store",
         }
