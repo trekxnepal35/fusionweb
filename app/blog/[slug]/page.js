@@ -397,7 +397,7 @@ export default async function BlogDetailPage({
     .slice(0, 3);
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.BASE_URL ||
     "http://localhost:3000";
 
   /*
