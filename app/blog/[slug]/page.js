@@ -95,7 +95,7 @@ export async function generateMetadata({ params }) {
   }
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.BASE_URL ||
     "http://localhost:3000";
 
   const blogUrl = `${baseUrl}/blog/${blog.slug}`;
@@ -280,7 +280,7 @@ GET ALL BLOGS FOR NAVIGATION
 async function getBlogNavigation() {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.BASE_URL ||
       "http://localhost:3000";
 
     const response = await fetch(
