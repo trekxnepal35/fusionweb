@@ -33,20 +33,17 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
         "
       >
         <span className="text-3xl">
-          🏔️
+          <img src="/fusionLogo.png" alt="Office Logo" className="w-23" />
         </span>
-
-        <span>
-          Fusion Expeditions
-        </span>
+       
       </Link>
 
 
       {/* DESKTOP MENU + SEARCH */}
 
-      <div className="hidden md:flex items-center gap-5">
+      <div className="hidden md:flex items-center w-[70%] justify-between">
 
-        <ul className="flex items-center gap-4">
+        <ul className="flex items-center gap-3.5">
 
           <RecursiveMenu
             menus={menus}

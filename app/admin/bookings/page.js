@@ -624,10 +624,8 @@ export default function AdminBookingsPage() {
 
 
           {bookings.map(
-            (booking) => {
-
-
-              const experienceTitle =
+            (booking) => {  
+             const experienceTitle =
                 getExperienceTitle(
                   booking
                 );
@@ -651,6 +649,7 @@ export default function AdminBookingsPage() {
                   key={booking._id}
                   className="rounded-xl bg-white p-5 shadow transition hover:shadow-md"
                 >
+                  
 
 
                   <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -733,7 +732,16 @@ export default function AdminBookingsPage() {
                             People:
                           </strong>{" "}
 
-                          {booking.numberOfPeople}
+                          {booking.numberOfPeople} 
+
+                        </p>
+                        <p>
+
+                          <strong>
+                            Terms and Conditions: 
+                          </strong>{" "}
+                          {booking.acceptTerms && "Accepted"}
+
 
                         </p>
 

@@ -1,13 +1,37 @@
-import Link from "next/link";
 
+import Link from "next/link";
 export const metadata = {
 title: "About Us | Trek Nepal",
 description:
 "Learn more about Trek Nepal, our team, and our commitment to creating memorable trekking, touring, climbing, and adventure experiences in Nepal.",
 };
 
-export default function AboutPage() {
-return ( <main className="bg-white">
+async function getAboutPage() {
+  const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+  const ABOUT_PAGE_ID = "6aa39aa1fd4b5d8f338b2ff5";
+
+  const response = await fetch(
+    `${NEXT_PUBLIC_BASE_URL}/api/pages/${ABOUT_PAGE_ID}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
+}
+
+export default async function AboutPage() {
+  const aboutPage = await getAboutPage();
+  const page = aboutPage.data;
+
+  if (!page) {
+    notFound();
+  }
+return (<main className="bg-white">
 
 
   {/* ========================================
@@ -19,20 +43,15 @@ return ( <main className="bg-white">
 
     <div className="relative mx-auto max-w-7xl px-5 py-24 sm:px-10 lg:px-16 lg:py-32">
 
-      <div className="max-w-3xl">
+      <div className="max-w-7xl">
 
         <p className="mb-4 text-sm font-semibold uppercase tracking-[0.25em] text-blue-400">
           About Us
         </p>
 
-        <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Discover Nepal With Us
-        </h1>
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-gray-200">
-          We create unforgettable experiences across Nepal, from
-          Himalayan treks and cultural tours to climbing and adventure
-          journeys.
+        <p className="mt-6 max-w-full text-lg leading-8 text-gray-200">
+          {page.description}
         </p>
 
       </div>
@@ -62,11 +81,7 @@ return ( <main className="bg-white">
         <div className="mt-6 space-y-5 text-base leading-7 text-gray-600">
 
           <p >
-            Nepal is a country of extraordinary landscapes, rich
-            cultures, ancient traditions, and some of the world's most
-            spectacular mountains. Our goal is to help travelers
-            experience the best of Nepal in a safe, comfortable, and
-            meaningful way.
+            {page.content}
           </p>
 
           <p>
@@ -101,7 +116,7 @@ return ( <main className="bg-white">
             </p>
 
             <p className="mt-2 text-sm text-gray-400">
-              <img src="./AboutImage.png" alt="About Photo" />
+              <img src={page.imageUrl} alt="About Photo" className="h-[500px] w-[500px]"/>
             </p>
 
           </div>
@@ -134,8 +149,7 @@ return ( <main className="bg-white">
         </h2>
 
         <p className="mt-5 text-lg leading-8 text-gray-600">
-          Choose from a range of experiences and discover Nepal according
-          to your interests, time, and adventure level.
+          {page.highlight}
         </p>
 
       </div>
@@ -157,8 +171,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-3 text-sm leading-6 text-gray-600">
-            Experience the Himalayas through some of Nepal's most
-            beautiful trekking routes.
+            {page.inclusions[0]}
           </p>
 
         </div>
@@ -177,8 +190,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-3 text-sm leading-6 text-gray-600">
-            Discover Nepal's cultural heritage, historic cities,
-            temples, wildlife, and natural beauty.
+          {page.inclusions[1]}
           </p>
 
         </div>
@@ -197,8 +209,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-3 text-sm leading-6 text-gray-600">
-            Take on Himalayan peaks and experience the challenge of
-            climbing in Nepal.
+          {page.inclusions[2]}
           </p>
 
         </div>
@@ -217,8 +228,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-3 text-sm leading-6 text-gray-600">
-            Add excitement to your Nepal journey with unforgettable
-            adventure activities and experiences.
+          {page.inclusions[3]}
           </p>
 
         </div>
@@ -249,9 +259,7 @@ return ( <main className="bg-white">
         </h2>
 
         <p className="mt-5 text-base leading-7 text-gray-600">
-          We focus on creating journeys that combine adventure,
-          responsible travel, local experiences, and professional
-          organization.
+          {page.importantInformation}
         </p>
 
       </div>
@@ -266,8 +274,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-2 text-sm leading-6 text-gray-600">
-            Discover Nepal through people who understand its mountains,
-            culture, communities, and destinations.
+          {page.exclusions[0]}
           </p>
 
         </div>
@@ -280,8 +287,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-2 text-sm leading-6 text-gray-600">
-            We can help travelers find experiences that match their
-            interests, schedule, and travel goals.
+          {page.exclusions[1]}
           </p>
 
         </div>
@@ -294,8 +300,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-2 text-sm leading-6 text-gray-600">
-            We value Nepal's natural environment, local communities,
-            culture, and heritage.
+          {page.exclusions[2]}
           </p>
 
         </div>
@@ -308,8 +313,7 @@ return ( <main className="bg-white">
           </h3>
 
           <p className="mt-2 text-sm leading-6 text-gray-600">
-            Our aim is to make every journey meaningful and memorable,
-            from the first day to the final farewell.
+          {page.exclusions[3]}
           </p>
 
         </div>
@@ -329,11 +333,11 @@ return ( <main className="bg-white">
 
     <div className="mx-auto max-w-7xl px-6 py-16 text-center sm:px-8 lg:px-12 lg:py-20">
 
-      <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      <h2 className="text-7xl font-bold tracking-tight text-white sm:text-4xl">
         Ready to Explore Nepal?
       </h2>
 
-      <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-gray-300">
+      <p className="mx-auto mt-5 max-w-7xl text-lg leading-8 text-gray-300">
         Explore our trekking, tour, climbing, and adventure experiences
         and start planning your journey.
       </p>
@@ -369,7 +373,5 @@ return ( <main className="bg-white">
   </section>
 
 </main>
-
-
 );
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState, } from "react";
+import { useRouter, useSearchParams, } from "next/navigation";
+import Link from "next/link";
+
 
 /*
 ==================================================
@@ -80,8 +82,9 @@ function BookingContent() {
     numberOfPeople: 1,
     preferredDate: "",
     message: "",
+    acceptTerms:false,
   });
-
+console.log("Form Data",formData)
   /*
   ==================================================
   LOAD EXPERIENCE
@@ -196,8 +199,8 @@ function BookingContent() {
 
         const max =
           tier.maxPax === null ||
-          tier.maxPax === "" ||
-          typeof tier.maxPax === "undefined"
+            tier.maxPax === "" ||
+            typeof tier.maxPax === "undefined"
             ? null
             : Number(tier.maxPax);
 
@@ -274,8 +277,8 @@ function BookingContent() {
     typeof experience?.pageType === "object"
       ? experience?.pageType?.slug
       : experience?.pageType ||
-        experienceType ||
-        "";
+      experienceType ||
+      "";
 
   /*
   ==================================================
@@ -375,13 +378,22 @@ function BookingContent() {
       if (pricingType === "pax_based") {
         if (!selectedTier) {
           throw new Error(
-            `No pricing tier is available for ${people} ${
-              people === 1 ? "person" : "people"
+            `No pricing tier is available for ${people} ${people === 1 ? "person" : "people"
             }.`
           );
         }
       }
+/*
+      ==============================================
+      Terms and Conditions
+      ==============================================
+      */
 
+      if (!formData.acceptTerms===true) {
+        alert("Please read the Terms and Conditions before accept it.");
+        return;
+      }
+      
       /*
       ==============================================
       SEND BOOKING
@@ -430,6 +442,9 @@ function BookingContent() {
 
             message:
               formData.message.trim(),
+
+            acceptTerms:
+              formData.acceptTerms,
           }),
         }
       );
@@ -439,7 +454,7 @@ function BookingContent() {
       if (!response.ok || !result.success) {
         throw new Error(
           result.message ||
-            "Failed to submit booking."
+          "Failed to submit booking."
         );
       }
 
@@ -465,6 +480,7 @@ function BookingContent() {
         numberOfPeople: 1,
         preferredDate: "",
         message: "",
+        acceptTerms:false,
       });
     } catch (error) {
       console.error(
@@ -474,7 +490,7 @@ function BookingContent() {
 
       setError(
         error.message ||
-          "Failed to submit booking."
+        "Failed to submit booking."
       );
     } finally {
       setSubmitting(false);
@@ -892,6 +908,34 @@ function BookingContent() {
                   />
                 </div>
 
+                {/*Terms and Conditions*/}
+
+                <div>
+                  <label
+                    htmlFor="termsConditions"
+                    className="mb-2 block text-sm font-medium text-gray-700"
+                  >
+                    I agree to the Terms and Conditions.<Link href="/term" target="_blank" className="hover:bg-green-500 bg-amber-500 px-5 rounded-3xl">Read more</Link>
+                  </label>
+
+                  <input
+                    id="termsConditions"
+                    name="termsConditions"
+                    type="checkbox"
+                    value={formData.acceptTerms}                                 
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        acceptTerms: e.target.checked,
+                      })
+                    }
+                    className=" size-3.5  rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-black"
+                    // required
+                  />
+                </div>
+
+
+
                 {/* SUBMIT */}
 
                 <button
@@ -982,13 +1026,13 @@ function BookingContent() {
 
                           const max =
                             tier.maxPax === null ||
-                            tier.maxPax === "" ||
-                            typeof tier.maxPax ===
+                              tier.maxPax === "" ||
+                              typeof tier.maxPax ===
                               "undefined"
                               ? null
                               : Number(
-                                  tier.maxPax
-                                );
+                                tier.maxPax
+                              );
 
                           const label =
                             max === null
@@ -1006,11 +1050,10 @@ function BookingContent() {
                                 tier._id ||
                                 index
                               }
-                              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm ${
-                                active
+                              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm ${active
                                   ? "bg-black text-white"
                                   : "bg-white text-gray-700"
-                              }`}
+                                }`}
                             >
                               <span>
                                 {label}
@@ -1056,6 +1099,7 @@ function BookingContent() {
           </aside>
         </div>
       </div>
+
     </main>
   );
 }

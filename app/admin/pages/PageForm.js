@@ -366,6 +366,19 @@ export default function PageForm({
 
     /*
 ======================================================
+YouTube Videos
+======================================================
+*/
+    youtubeVideos:
+      Array.isArray(initialData.youtubeVideos)
+        ? initialData.youtubeVideos.map((item) => ({
+          title: item.title || "",
+          url: item.url || "",
+        }))
+        : [],
+
+    /*
+======================================================
 PUBLISHING
 ======================================================
 */
@@ -867,6 +880,68 @@ PUBLISHING
         (item) =>
           item.question ||
           item.answer
+      );
+  }
+
+
+  /*
+  
+  # YouTube Handlers
+  
+  */
+  function addYoutubeVideo() {
+    setFormData((prev) => ({
+      ...prev,
+      youtubeVideos: [
+        ...prev.youtubeVideos,
+        {
+          title: "",
+          url: "",
+        },
+      ],
+    }));
+
+    setFormError("");
+  }
+
+  function removeYoutubeVideo(index) {
+    setFormData((prev) => ({
+      ...prev,
+      youtubeVideos: prev.youtubeVideos.filter(
+        (_, i) => i !== index
+      ),
+    }));
+
+    setFormError("");
+  }
+
+  function handleYoutubeVideoChange(index, field, value) {
+    setFormData((prev) => ({
+      ...prev,
+      youtubeVideos: prev.youtubeVideos.map(
+        (item, i) =>
+          i === index
+            ? {
+              ...item,
+              [field]: value,
+            }
+            : item
+      ),
+    }));
+
+    setFormError("");
+  }
+
+  function getCleanYoutubeVideos() {
+    return formData.youtubeVideos
+      .map((item) => ({
+        title: String(item.title || "").trim(),
+        url: String(item.url || "").trim(),
+      }))
+      .filter(
+        (item) =>
+          item.title ||
+          item.url
       );
   }
 
@@ -1746,12 +1821,20 @@ PUBLISHING
 
     /*
     ------------------------------------------------------
-    CLEAN IMAGES
+    CLEAN Faqs
     ------------------------------------------------------
     */
 
     const cleanedFaqs =
       getCleanFaqs();
+
+    /*
+ ------------------------------------------------------
+ CLEAN Faqs
+ ------------------------------------------------------
+ */
+    const cleanedYoutubeVideos =
+      getCleanYoutubeVideos();
     /*
     ------------------------------------------------------
     CLEAN IMAGES
@@ -1987,7 +2070,14 @@ PUBLISHING
       faqs:
         cleanedFaqs,
 
+      /*
+   ====================================================
+   YouTube Videos
+   ====================================================
+   */
 
+      youtubeVideos:
+        cleanedYoutubeVideos,
       /*
       ====================================================
       PUBLISHING
@@ -2524,23 +2614,23 @@ PUBLISHING
       {/* Highlight */}
 
       <div className="md:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Highlight
-          </label>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Highlight
+        </label>
 
-          <textarea
-            name="highlight"
-            value={formData.highlight}
-            onChange={handleChange}
-            rows="8"
-            placeholder="Write page highlight..."
-            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
-          />
-        </div>
-     
+        <textarea
+          name="highlight"
+          value={formData.highlight}
+          onChange={handleChange}
+          rows="8"
+          placeholder="Write page highlight..."
+          className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+        />
+      </div>
+
     </section>
-        
-   
+
+
 
     {/* =================================================
       PACKAGE PRICING
@@ -3512,7 +3602,7 @@ PUBLISHING
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Travel Hours
+                      Travel Hours
                     </label>
 
                     <input
@@ -3760,16 +3850,16 @@ PUBLISHING
           )}
 
 
-         
+
 
         </div>
         <button
-            type="button"
-            onClick={addFaq}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            + Add FAQ
-          </button>
+          type="button"
+          onClick={addFaq}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          + Add FAQ
+        </button>
         <div>
           <h2 className="text-xl font-bold text-gray-900">
             Frequently Asked Questions
@@ -3896,6 +3986,134 @@ PUBLISHING
       </div>
 
     </section>
+
+
+   
+    {/* =========================================
+    YOUTUBE VIDEOS
+    ========================================= */}
+
+    <div className="mt-8 rounded-lg border border-gray-200 bg-white p-5">
+
+      <div className="mb-5 flex items-center justify-between">
+
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">
+            YouTube Videos
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Add YouTube videos for this page.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={addYoutubeVideo}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+        >
+          + Add YouTube Video
+        </button>
+
+      </div>
+
+
+      {formData.youtubeVideos.length === 0 ? (
+
+        <div className="rounded-md border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500">
+          No YouTube videos added yet.
+        </div>
+
+      ) : (
+
+        <div className="space-y-5">
+
+          {formData.youtubeVideos.map(
+            (video, index) => (
+
+              <div
+                key={index}
+                className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+              >
+
+                <div className="mb-4 flex items-center justify-between">
+
+                  <h3 className="font-medium text-gray-700">
+                    YouTube Video {index + 1}
+                  </h3>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      removeYoutubeVideo(index)
+                    }
+                    className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-red-700"
+                  >
+                    Remove
+                  </button>
+
+                </div>
+
+
+                {/* TITLE */}
+
+                <div className="mb-4">
+
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    Video Title
+                  </label>
+
+                  <input
+                    type="text"
+                    value={video.title}
+                    onChange={(e) =>
+                      handleYoutubeVideoChange(
+                        index,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Enter YouTube video title"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-blue-500"
+                  />
+
+                </div>
+
+
+                {/* URL */}
+
+                <div>
+
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    YouTube URL
+                  </label>
+
+                  <input
+                    type="url"
+                    value={video.url}
+                    onChange={(e) =>
+                      handleYoutubeVideoChange(
+                        index,
+                        "url",
+                        e.target.value
+                      )
+                    }
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-blue-500"
+                  />
+
+                </div>
+
+              </div>
+
+            )
+          )}
+
+        </div>
+
+      )}
+
+    </div>
 
 
     {/* =================================================

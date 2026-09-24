@@ -2,6 +2,7 @@ import "./globals.css";
 
 import Navbar from "./components/Navbar";
 import { getMenus } from "@/lib/getMenus";
+import Link from "next/link";
 
 
 /*
@@ -138,6 +139,9 @@ export default async function RootLayout({
     <html lang="en">
 
       <body className="min-h-screen bg-white text-slate-900 antialiased">
+     
+      
+
 
         {/* =================================
             NAVBAR
@@ -151,6 +155,7 @@ export default async function RootLayout({
         ================================= */}
 
         <main className="min-h-screen ">
+      
 
           {children}
 
@@ -163,26 +168,23 @@ export default async function RootLayout({
 
         <footer className="bg-slate-950 text-white">
 
-          <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+          <div className="mx-auto max-w-full px-6 py-16 lg:px-8">
 
-            <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
 
 
               {/* BRAND */}
 
               <div className="lg:col-span-2">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-xl">
-                    🏔️
-                  </div>
-
+              <Link href="/" className="transition hover:text-white">
+                <div className="flex items-center gap-3">     
 
                   <div>
 
                     <div className="text-xl font-black">
-                      Trek Nepal
+                    
+                      Fusion Expeditions
+                     
                     </div>
 
                     <div className="text-xs text-slate-400">
@@ -192,6 +194,7 @@ export default async function RootLayout({
                   </div>
 
                 </div>
+                </Link>
 
 
                 <p className="mt-6 max-w-md leading-7 text-slate-400">
@@ -237,32 +240,57 @@ export default async function RootLayout({
                 <ul className="mt-5 space-y-3 text-sm text-slate-400">
 
                   <li>
-                    <a
-                      href="/treks"
-                      className="transition hover:text-white"
-                    >
+                    <Link href="/treks" className="transition hover:text-white">
+                   
                       Treks
-                    </a>
+                      </Link>
+                   
                   </li>
 
 
                   <li>
-                    <a
-                      href="/tours"
-                      className="transition hover:text-white"
-                    >
+                  <Link href="/tours" className="transition hover:text-white">
                       Tours
-                    </a>
+                    </Link>
                   </li>
 
 
                   <li>
-                    <a
-                      href="/booking"
-                      className="transition hover:text-white"
-                    >
-                      Booking
-                    </a>
+                  <Link href="/contact" className="transition hover:text-white">
+                      Contact
+                    </Link>
+                  </li>
+
+                </ul>
+
+              </div>
+              <div>
+
+                <h3 className="font-black">
+                  Useful Links
+                </h3>
+
+
+                <ul className="mt-5 space-y-3 text-sm text-slate-400">
+
+                  <li>
+                  <Link href="/term" className="transition hover:text-white">
+                      Terms and Conditions
+                    </Link>
+                  </li>
+
+
+                  <li>
+                  <Link href="/faq" className="transition hover:text-white">
+                      Faqs
+                  </Link>
+                  </li>
+
+
+                  <li>
+                  <Link href="/blog" className="transition hover:text-white">
+                      Blog
+                    </Link>
                   </li>
 
                 </ul>
@@ -306,28 +334,24 @@ export default async function RootLayout({
 
             <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
 
-              <p>
-                © {new Date().getFullYear()} Trek Nepal.
+              <p className="transition hover:text-white" >
+                © {new Date().getFullYear()} Fusion Expeditions Pvt Ltd. Nepal,
                 All rights reserved.
               </p>
 
 
               <div className="flex gap-6">
 
-                <a
-                  href="#"
-                  className="transition hover:text-white"
-                >
+              <Link href="/term" className="transition hover:text-white">
+
                   Privacy Policy
-                </a>
+                </Link>
 
 
-                <a
-                  href="#"
-                  className="transition hover:text-white"
-                >
+                <Link href="/term" className="transition hover:text-white">
+
                   Terms
-                </a>
+                </Link>
 
               </div>
 
@@ -354,10 +378,10 @@ export default async function RootLayout({
                 "TravelAgency",
 
               name:
-                "Trek Nepal",
+                "Fusion Expeditions",
 
               description:
-                "Nepal trekking and tour company offering Himalayan adventures and travel experiences.",
+                "Fusion Expeditions trekking and tour company offering Himalayan adventures and travel experiences.",
 
               url:
                 process.env.NEXT_PUBLIC_SITE_URL ||

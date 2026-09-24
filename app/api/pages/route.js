@@ -1459,6 +1459,17 @@ FAQ MAP- IMAGE
             ? body.faqs
             : [],
 
+             /*
+        ========================================
+       YouTube Videos
+        ========================================
+        */
+        youtubeVideos: Array.isArray(body.youtubeVideos)
+        ? body.youtubeVideos
+        : [],
+        
+
+
         seo:
           body.seo || {},
 

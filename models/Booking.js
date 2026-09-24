@@ -143,6 +143,12 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
     },
 
+    acceptTerms: 
+    { type: Boolean, 
+      default: false,
+      required: true,
+     },
+
     /*
     ========================================
     STATUS

@@ -825,13 +825,13 @@ export default async function TourDetailPage({
                 )}
 
 
-                {/* ================================
+               {/* ================================
                     ENQUIRY
                 ================================= */}
 
-                <Link
-                  href={`/booking?experienceId=${tour._id}&experienceType=tour&enquiry=true`}
-                  className={`block rounded-lg border border-gray-900 px-6 py-4 text-center font-semibold text-gray-900 hover:bg-gray-100 ${isBookable
+<Link
+                  href={`/enquiry?experienceId=${tour._id}&experienceType=${tour.pageType.slug}`}
+                  className={`block rounded-lg border border-gray-900 px-6 py-4 text-center font-semibold text-gray-900 transition hover:bg-gray-100 ${isBookable
                     ? "mt-3"
                     : "mt-8"
                     }`}

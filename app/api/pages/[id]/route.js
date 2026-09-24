@@ -866,8 +866,14 @@ FAQ- MAP- IMAGE
       ? body.faqs
       : [];
 
-
-
+ /*
+    ========================================
+    YouTube Video
+    ========================================
+    */
+    existingPage.youtubeVideos=Array.isArray(body.youtubeVideos)
+    ? body.youtubeVideos
+    : [],
 
     /*
     ========================================

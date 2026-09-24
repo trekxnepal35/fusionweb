@@ -157,6 +157,7 @@ export async function POST(request) {
       numberOfPeople,
       preferredDate,
       message,
+      acceptTerms,
 
     } = body;
 
@@ -769,6 +770,9 @@ export async function POST(request) {
         message:
           message?.trim() || "",
 
+        acceptTerms:
+          acceptTerms,
+
 
         /*
         Initial status
@@ -929,6 +933,16 @@ export async function POST(request) {
                   )}
                 </p>
 
+                <h3>
+                  Terms and Conditions
+                </h3>
+                <p>
+                  ${escapeHtml(
+                    acceptTerms ||
+                    "No message provided."
+                  )}
+                </p>
+
                 <hr />
 
                 <p>
@@ -1020,6 +1034,9 @@ export async function POST(request) {
 
           status:
             booking.status,
+
+          acceptTerms:
+          acceptTerms,
 
           emailSent,
 

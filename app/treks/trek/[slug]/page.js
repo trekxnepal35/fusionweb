@@ -12,6 +12,7 @@ import FeedbackForm from "@/app/components/FeedbackForm";
 import ImageGallery from "@/app/components/ImageGallery";
 import SectionNavigation from "@/app/components/SectionNavigation";
 import SectionCollapse from "@/app/components/SectionCollapse";
+import YouTubeVideos from "@/app/components/YouTubeVideos";
 
 
 
@@ -967,6 +968,12 @@ export default async function TrekDetailPage({
               </section>
 
             )}
+
+          {/* =====================================
+              YouTube Videos
+          ===================================== */}
+          <YouTubeVideos videos={trek.youtubeVideos}/>
+
 
           {/* =====================================
               FEEDBACK / COMMENTS
