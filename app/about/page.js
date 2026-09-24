@@ -1,5 +1,6 @@
-
 import Link from "next/link";
+import { notFound } from "next/navigation";
+
 export const metadata = {
 title: "About Us | Trek Nepal",
 description:
@@ -7,11 +8,10 @@ description:
 };
 
 async function getAboutPage() {
-  const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-  const ABOUT_PAGE_ID = "6aa39aa1fd4b5d8f338b2ff5";
+ 
 
   const response = await fetch(
-    `${NEXT_PUBLIC_BASE_URL}/api/pages/${ABOUT_PAGE_ID}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/pages/${process.env.ABOUT_PAGE_ID}`,
     {
       cache: "no-store",
     }
