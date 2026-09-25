@@ -13,7 +13,7 @@ SEO METADATA
 export async function generateMetadata({ searchParams }) {
 
   const baseUrl =
-    process.env.BASE_URL ||
+    process.env.baseUrl ||
     "http://localhost:3000";
 
   const params = await searchParams;
@@ -93,7 +93,7 @@ async function getBlogs(page = 1, limit = 6) {
   try {
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.baseUrl ||
       "http://localhost:3000";
 
     const response = await fetch(
@@ -218,7 +218,7 @@ export default async function BlogPage({
 
 
   const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.baseUrl ||
     "http://localhost:3000";
 
 

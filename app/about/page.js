@@ -8,11 +8,11 @@ description:
 };
 
 async function getAboutPage() {
- const BASE_URL = process.env.BASE_URL
+ const baseUrl = process.env.baseUrl
  const ABOUT_PAGE_ID = process.env.ABOUT_PAGE_ID
 
   const response = await fetch(
-    `${BASE_URL}/api/pages/${ABOUT_PAGE_ID}`,
+    `${baseUrl}/api/pages/${ABOUT_PAGE_ID}`,
     {
       cache: "no-store",
     }

@@ -1,11 +1,12 @@
+import { base64url } from "jose";
 import Link from "next/link";
 
 async function getTermsPage() {
-    const BASE_URL = process.env.BASE_URL
-    const TERM_PAGE_ID = "6ab2718203263c54378f4e21";
+    const baseUrl = process.env.baseUrl
+    const TERM_PAGE_ID = process.env.TERM_PAGE_ID
 
     const res = await fetch(
-        `${BASE_URL}/api/pages/${TERM_PAGE_ID}`,
+        `${baseUrl}/api/pages/${TERM_PAGE_ID}`,
         {
             cache: "no-store",
         }

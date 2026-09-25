@@ -33,7 +33,7 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
         "
       >
         <span className="text-3xl">
-          <img src="/fusionLogo.png" alt="Office Logo" className="w-23" />
+          <img src="/fusionLogo.png" alt="Office Logo" className="w-32" />
         </span>
        
       </Link>

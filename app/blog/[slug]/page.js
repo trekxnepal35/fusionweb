@@ -15,7 +15,7 @@ GET CURRENT BLOG
 async function getBlog(slug) {
   try {
     const baseUrl =
-      process.env.BASE_URL ||
+      process.env.baseUrl ||
       "http://localhost:3000";
 
     const response = await fetch(
@@ -95,7 +95,7 @@ export async function generateMetadata({ params }) {
   }
 
   const baseUrl =
-    process.env.BASE_URL ||
+    process.env.baseUrl ||
     "http://localhost:3000";
 
   const blogUrl = `${baseUrl}/blog/${blog.slug}`;
@@ -280,7 +280,7 @@ GET ALL BLOGS FOR NAVIGATION
 async function getBlogNavigation() {
   try {
     const baseUrl =
-      process.env.BASE_URL ||
+      process.env.baseUrl ||
       "http://localhost:3000";
 
     const response = await fetch(
@@ -397,7 +397,7 @@ export default async function BlogDetailPage({
     .slice(0, 3);
 
   const baseUrl =
-    process.env.BASE_URL ||
+    process.env.baseUrl ||
     "http://localhost:3000";
 
   /*
