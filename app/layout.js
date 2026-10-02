@@ -57,7 +57,7 @@ export const metadata = {
   metadataBase:
     new URL(
       process.env.NEXT_PUBLIC_SITE_URL ||
-        "http://localhost:3000"
+      "http://localhost:3000"
     ),
 
 
@@ -139,8 +139,8 @@ export default async function RootLayout({
     <html lang="en">
 
       <body className="min-h-screen bg-white text-slate-900 antialiased">
-     
-      
+
+
 
 
         {/* =================================
@@ -154,8 +154,8 @@ export default async function RootLayout({
             MAIN CONTENT
         ================================= */}
 
-        <main className="min-h-screen ">
-      
+        <main className="min-h-screen">
+
 
           {children}
 
@@ -176,24 +176,24 @@ export default async function RootLayout({
               {/* BRAND */}
 
               <div className="lg:col-span-2">
-              <Link href="/" className="transition hover:text-white">
-                <div className="flex items-center gap-3">     
+                <Link href="/" className="transition hover:text-white">
+                  <div className="flex items-center gap-3">
 
-                  <div>
+                    <div>
 
-                    <div className="text-xl font-black">
-                    
-                      Fusion Expeditions
-                     
-                    </div>
+                      <div className="text-xl font-black">
 
-                    <div className="text-xs text-slate-400">
-                      Himalayan Adventures
+                        Fusion Expeditions
+
+                      </div>
+
+                      <div className="text-xs text-slate-400">
+                        Himalayan Adventures
+                      </div>
+
                     </div>
 
                   </div>
-
-                </div>
                 </Link>
 
 
@@ -205,6 +205,111 @@ export default async function RootLayout({
 
                 </p>
 
+
+
+
+              </div>
+
+
+              {/* EXPLORE */}
+
+              <div>
+
+                <h3 className="font-black">
+                  Explore
+                </h3>
+
+
+                <ul className="mt-5 space-y-3 text-sm text-slate-400">
+
+                  <li>
+                    <Link href="/treks" className="transition hover:text-white">
+
+                      Treks
+                    </Link>
+
+                  </li>
+
+
+                  <li>
+                    <Link href="/tours" className="transition hover:text-white">
+                      Tours
+                    </Link>
+                  </li>
+
+
+                  <li>
+                    <Link href="/contact" className="transition hover:text-white">
+                      Contact
+                    </Link>
+                  </li>
+
+                </ul>
+
+              </div>
+              <div>
+
+                <h3 className="font-black">
+                  Useful Links
+                </h3>
+
+
+                <ul className="mt-5 space-y-3 text-sm text-slate-400">
+
+                  <li>
+                    <Link href="/term" className="transition hover:text-white">
+                      Terms and Conditions
+                    </Link>
+                  </li>
+
+
+                  <li>
+                    <Link href="/faq" className="transition hover:text-white">
+                      Faqs
+                    </Link>
+                  </li>
+
+
+                  <li>
+                    <Link href="/blog" className="transition hover:text-white">
+                      Blog
+                    </Link>
+                  </li>
+
+                </ul>
+
+              </div>
+
+
+              {/* CONTACT */}
+
+              <div>
+
+                <h3 className="font-black">
+
+                  <Link href="/contact" className="transition hover:text-white">
+                    Contact
+                  </Link>
+                </h3>
+
+
+                <ul className="mt-5 space-y-4 text-sm text-slate-400">
+
+                  <li>
+                    📍Thamel, Kathmandu, Nepal
+                  </li>
+
+
+                  <li>
+                    ✉️ fusionexpeditions@gmail.com
+                  </li>
+
+
+                  <li>
+                    📞 +977 9851432432
+                  </li>
+
+                </ul>
 
                 <div className="mt-7 flex gap-3">
 
@@ -227,106 +332,6 @@ export default async function RootLayout({
 
               </div>
 
-
-              {/* EXPLORE */}
-
-              <div>
-
-                <h3 className="font-black">
-                  Explore
-                </h3>
-
-
-                <ul className="mt-5 space-y-3 text-sm text-slate-400">
-
-                  <li>
-                    <Link href="/treks" className="transition hover:text-white">
-                   
-                      Treks
-                      </Link>
-                   
-                  </li>
-
-
-                  <li>
-                  <Link href="/tours" className="transition hover:text-white">
-                      Tours
-                    </Link>
-                  </li>
-
-
-                  <li>
-                  <Link href="/contact" className="transition hover:text-white">
-                      Contact
-                    </Link>
-                  </li>
-
-                </ul>
-
-              </div>
-              <div>
-
-                <h3 className="font-black">
-                  Useful Links
-                </h3>
-
-
-                <ul className="mt-5 space-y-3 text-sm text-slate-400">
-
-                  <li>
-                  <Link href="/term" className="transition hover:text-white">
-                      Terms and Conditions
-                    </Link>
-                  </li>
-
-
-                  <li>
-                  <Link href="/faq" className="transition hover:text-white">
-                      Faqs
-                  </Link>
-                  </li>
-
-
-                  <li>
-                  <Link href="/blog" className="transition hover:text-white">
-                      Blog
-                    </Link>
-                  </li>
-
-                </ul>
-
-              </div>
-
-
-              {/* CONTACT */}
-
-              <div>
-
-                <h3 className="font-black">
-                  Contact
-                </h3>
-
-
-                <ul className="mt-5 space-y-4 text-sm text-slate-400">
-
-                  <li>
-                    📍 Kathmandu, Nepal
-                  </li>
-
-
-                  <li>
-                    ✉️ abc@gmail.com
-                  </li>
-
-
-                  <li>
-                    📞 +977 98XXXXXXXX
-                  </li>
-
-                </ul>
-
-              </div>
-
             </div>
 
 
@@ -342,7 +347,7 @@ export default async function RootLayout({
 
               <div className="flex gap-6">
 
-              <Link href="/term" className="transition hover:text-white">
+                <Link href="/term" className="transition hover:text-white">
 
                   Privacy Policy
                 </Link>

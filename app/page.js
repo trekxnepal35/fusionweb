@@ -492,50 +492,50 @@ export default function HomePage() {
 
         <div className="relative mx-auto -mt-20 max-w-7xl px-6 lg:px-8">
 
-      <div className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl sm:grid-cols-3">
+          <div className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl sm:grid-cols-3">
 
-        <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
+            <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
 
-          <div className="text-3xl font-black">
-            8,848m
-          </div>
+              <div className="text-3xl font-black">
+                8,848m
+              </div>
 
-          <div className="mt-1 text-sm text-slate-300">
-            Highest Mountain
+              <div className="mt-1 text-sm text-slate-300">
+                Highest Mountain
+              </div>
+
+            </div>
+
+
+            <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
+
+              <div className="text-3xl font-black">
+                14+
+              </div>
+
+              <div className="mt-1 text-sm text-slate-300">
+                Himalayan Peaks
+              </div>
+
+            </div>
+
+
+            <div className="p-6 text-center text-white">
+
+              <div className="text-3xl font-black">
+                100%
+              </div>
+
+              <div className="mt-1 text-sm text-slate-300">
+                Nepal Adventure
+              </div>
+
+            </div>
+
           </div>
 
         </div>
 
-
-        <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
-
-          <div className="text-3xl font-black">
-            14+
-          </div>
-
-          <div className="mt-1 text-sm text-slate-300">
-            Himalayan Peaks
-          </div>
-
-        </div>
-
-
-        <div className="p-6 text-center text-white">
-
-          <div className="text-3xl font-black">
-            100%
-          </div>
-
-          <div className="mt-1 text-sm text-slate-300">
-            Nepal Adventure
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-      
 
 
       </section>
@@ -722,11 +722,11 @@ export default function HomePage() {
                     className="group relative overflow-hidden rounded-3xl bg-slate-900 p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
                   >
 
-                    {region.imageUrl && (
+                    {region.cardImageUrl && (
 
                       <img
                         src={
-                          region.imageUrl
+                          region.cardImageUrl
                         }
                         alt={
                           region.name
@@ -937,14 +937,14 @@ export default function HomePage() {
           </span>
 
 
-          <h2 className="mx-auto mt-4 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl">
+          <h2 className="mx-auto mt-4  text-4xl font-black tracking-tight text-white sm:text-5xl">
 
             Ready to explore Nepal?
 
           </h2>
 
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-emerald-50">
+          <p className="mx-auto mt-6  text-lg leading-8 text-emerald-50">
 
             Find your perfect trek or tour and begin planning
             an unforgettable journey through the Himalayas.
@@ -1179,8 +1179,8 @@ function PopularExperiences({
 
             <span
               className={`h-2.5 w-2.5 rounded-full ${isPlaying
-                  ? "animate-pulse bg-emerald-500"
-                  : "bg-slate-300"
+                ? "animate-pulse bg-emerald-500"
+                : "bg-slate-300"
                 }`}
             />
 
@@ -1211,14 +1211,14 @@ function PopularExperiences({
 
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
 
-                {current.imageUrl ? (
+                {current.cardImageUrl ? (
 
                   <img
                     key={
                       current._id
                     }
                     src={
-                      current.imageUrl
+                      current.cardImageUrl
                     }
                     alt={
                       current.title
@@ -1426,8 +1426,8 @@ function PopularExperiences({
                       }}
                       aria-label={`Show popular experience ${index + 1}`}
                       className={`h-2.5 rounded-full transition-all ${index === currentIndex
-                          ? "w-8 bg-emerald-500"
-                          : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                        ? "w-8 bg-emerald-500"
+                        : "w-2.5 bg-slate-300 hover:bg-slate-400"
                         }`}
                     />
 
@@ -1464,8 +1464,8 @@ function PopularExperiences({
 
                   }}
                   className={`rounded-xl px-2 py-2 text-center text-xs font-bold transition ${index === currentIndex
-                      ? "bg-emerald-600 text-white shadow-md"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                 >
                   {index + 1}
@@ -1555,8 +1555,8 @@ function SectionHeading({
 
         <span
           className={`text-sm font-bold uppercase tracking-[0.25em] ${dark
-              ? "text-emerald-300"
-              : "text-emerald-600"
+            ? "text-emerald-300"
+            : "text-emerald-600"
             }`}
         >
           {eyebrow}
@@ -1565,8 +1565,8 @@ function SectionHeading({
 
         <h2
           className={`mt-3 text-4xl font-black tracking-tight sm:text-5xl ${dark
-              ? "text-white"
-              : "text-slate-900"
+            ? "text-white"
+            : "text-slate-900"
             }`}
         >
           {title}
@@ -1575,8 +1575,8 @@ function SectionHeading({
 
         <p
           className={`mt-5 text-lg leading-8 ${dark
-              ? "text-slate-300"
-              : "text-slate-600"
+            ? "text-slate-300"
+            : "text-slate-600"
             }`}
         >
           {description}
@@ -1590,8 +1590,8 @@ function SectionHeading({
         <Link
           href={link}
           className={`font-bold transition ${dark
-              ? "text-emerald-300 hover:text-white"
-              : "text-emerald-700 hover:text-emerald-500"
+            ? "text-emerald-300 hover:text-white"
+            : "text-emerald-700 hover:text-emerald-500"
             }`}
         >
 
@@ -1639,8 +1639,8 @@ function ExperienceCard({
 
     <article
       className={`group overflow-hidden rounded-3xl shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${dark
-          ? "border border-white/10 bg-white/5"
-          : "border border-slate-200 bg-white"
+        ? "border border-white/10 bg-white/5"
+        : "border border-slate-200 bg-white"
         }`}
     >
 
@@ -1654,11 +1654,11 @@ function ExperienceCard({
 
         <div className="relative aspect-[4/3] overflow-hidden bg-slate-200">
 
-          {item.imageUrl ? (
+          {item.cardImageUrl ? (
 
             <img
               src={
-                item.imageUrl
+                item.cardImageUrl
               }
               alt={
                 item.title
@@ -1694,8 +1694,8 @@ function ExperienceCard({
 
           <h3
             className={`line-clamp-2 text-2xl font-black transition ${dark
-                ? "text-white group-hover:text-emerald-300"
-                : "text-slate-900 group-hover:text-emerald-700"
+              ? "text-white group-hover:text-emerald-300"
+              : "text-slate-900 group-hover:text-emerald-700"
               }`}
           >
             {item.title}
@@ -1717,8 +1717,8 @@ function ExperienceCard({
 
         <p
           className={`mt-4 line-clamp-3 leading-7 ${dark
-              ? "text-slate-300"
-              : "text-slate-600"
+            ? "text-slate-300"
+            : "text-slate-600"
             }`}
         >
           {item.description ||
@@ -1734,8 +1734,8 @@ function ExperienceCard({
 
             <span
               className={`text-xs ${dark
-                  ? "text-slate-400"
-                  : "text-slate-500"
+                ? "text-slate-400"
+                : "text-slate-500"
                 }`}
             >
               {price.label ||
@@ -1745,8 +1745,8 @@ function ExperienceCard({
 
             <div
               className={`text-2xl font-black ${dark
-                  ? "text-white"
-                  : "text-slate-900"
+                ? "text-white"
+                : "text-slate-900"
                 }`}
             >
 
@@ -1772,8 +1772,8 @@ function ExperienceCard({
           <Link
             href={detailHref}
             className={`flex-1 rounded-full px-5 py-3 text-center text-sm font-bold transition ${dark
-                ? "bg-white text-slate-900 hover:bg-emerald-300"
-                : "bg-slate-900 text-white hover:bg-emerald-600"
+              ? "bg-white text-slate-900 hover:bg-emerald-300"
+              : "bg-slate-900 text-white hover:bg-emerald-600"
               }`}
           >
             View Details

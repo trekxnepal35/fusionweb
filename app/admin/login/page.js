@@ -1,253 +1,194 @@
 "use client";
 
 import { useState } from "react";
-
 import { useRouter } from "next/navigation";
-
 
 export default function AdminLoginPage() {
 
-  const router =
-    useRouter();
+  const router = useRouter();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [form, setForm] =
-    useState({
-      email: "",
-      password: "",
-    });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-
-  const [loading, setLoading] =
-    useState(false);
-
-
-  function handleChange(e) {
-
-    const {
-      name,
-      value,
-    } = e.target;
-
-
-    setForm(
-      (previous) => ({
-
-        ...previous,
-
-        [name]: value,
-
-      })
-    );
-
-  }
-
-
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
+    e.stopPropagation();
 
+    setError("");
+    setLoading(true);
 
     try {
 
-      setLoading(true);
+      const response = await fetch(
+        "/api/admin/login",
+        {
+          method: "POST",
 
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-      const response =
-        await fetch(
-          "/api/admin/login",
-          {
-            method: "POST",
+          credentials: "include",
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify(form),
-          }
-        );
-
-
-      const result =
-        await response.json();
-
-
-      if (!response.ok) {
-
-        alert(
-          result.message ||
-            "Login failed."
-        );
-
-        return;
-
-      }
-
-
-      router.push(
-        "/admin/navbar"
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
       );
 
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.success) {
+
+        setError(
+          data.message ||
+          "Invalid email or password."
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      /*
+      ========================================
+      LOGIN SUCCESS
+      ========================================
+      */
+
+      console.log(
+        "ADMIN LOGIN SUCCESS"
+      );
+
+      /*
+      ========================================
+      IMPORTANT
+
+      Use a full browser navigation after
+      the cookie has been set by the API.
+      ========================================
+      */
+
+      window.location.href = "/admin";
 
     } catch (error) {
 
-      console.error(error);
-
-
-      alert(
-        "Unable to login."
+      console.error(
+        "Login error:",
+        error
       );
 
-
-    } finally {
+      setError(
+        "Unable to login. Please try again."
+      );
 
       setLoading(false);
-
     }
-
-  }
+  };
 
 
   return (
 
-    <main
-      className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        bg-gray-100
-        px-4
-      "
-    >
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
 
-      <div
-        className="
-          w-full
-          max-w-md
-          bg-white
-          rounded-2xl
-          shadow
-          p-6
-          md:p-8
-        "
-      >
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
 
-        <h1
-          className="
-            text-3xl
-            font-bold
-            text-center
-          "
-        >
-          Admin Login
-        </h1>
+        <div className="mb-8 text-center">
+
+          <h1 className="text-2xl font-bold text-gray-900">
+            Admin Login
+          </h1>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Sign in to access the administration dashboard.
+          </p>
+
+        </div>
 
 
-        <p
-          className="
-            text-center
-            text-gray-500
-            mt-2
-            mb-8
-          "
-        >
-          Sign in to manage your website.
-        </p>
+        {error && (
+
+          <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+
+        )}
 
 
         <form
+          method="POST"
           onSubmit={handleSubmit}
-          className="
-            space-y-5
-          "
+          className="space-y-5"
         >
+
+          {/* EMAIL */}
 
           <div>
 
             <label
-              className="
-                block
-                font-medium
-                mb-2
-              "
+              htmlFor="email"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
               Email
             </label>
 
-
             <input
-              type="email"
+              id="email"
               name="email"
-              value={form.email}
-              onChange={handleChange}
-              placeholder="admin@example.com"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               required
-              className="
-                w-full
-                border
-                rounded-lg
-                px-4
-                py-3
-                outline-none
-                focus:ring-2
-                focus:ring-black
-              "
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="admin@example.com"
             />
 
           </div>
 
+
+          {/* PASSWORD */}
 
           <div>
 
             <label
-              className="
-                block
-                font-medium
-                mb-2
-              "
+              htmlFor="password"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
               Password
             </label>
 
-
             <input
-              type="password"
+              id="password"
               name="password"
-              value={form.password}
-              onChange={handleChange}
-              placeholder="••••••••"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               required
-              className="
-                w-full
-                border
-                rounded-lg
-                px-4
-                py-3
-                outline-none
-                focus:ring-2
-                focus:ring-black
-              "
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Enter your password"
             />
 
           </div>
 
 
+          {/* LOGIN BUTTON */}
+
           <button
             type="submit"
             disabled={loading}
-            className="
-              w-full
-              bg-black
-              text-white
-              py-3
-              rounded-lg
-              font-medium
-              hover:bg-gray-800
-              disabled:opacity-50
-            "
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
 
             {loading
@@ -260,8 +201,7 @@ export default function AdminLoginPage() {
 
       </div>
 
-    </main>
+    </div>
 
   );
-
 }

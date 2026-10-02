@@ -51,51 +51,159 @@ function getCleanImages(images) {
     return [];
   }
 
-
   return images
     .map((image) => {
 
       /*
-      --------------------------------
-      OLD STRING FORMAT
-      --------------------------------
+      ========================================
+      OLD STRING IMAGE FORMAT
+      ========================================
       */
 
       if (typeof image === "string") {
 
-        return {
-          url: image.trim(),
-          alt: "",
-        };
+        const url =
+          image.trim();
 
+        if (!url) {
+          return null;
+        }
+
+        let storage = "";
+
+        if (
+          url.includes("res.cloudinary.com")
+        ) {
+          storage = "cloudinary";
+        }
+
+        if (
+          url.includes(".s3.") ||
+          url.includes(".amazonaws.com/")
+        ) {
+          storage = "s3";
+        }
+
+        const fileName =
+          url
+            .split("/")
+            .pop()
+            ?.split("?")[0] ||
+          "Page image";
+
+        return {
+          url,
+
+          alt:
+            fileName || "Page image",
+
+          storage,
+
+          publicId: "",
+
+          key: "",
+        };
       }
 
 
       /*
-      --------------------------------
-      OBJECT FORMAT
-      --------------------------------
+      ========================================
+      IMAGE OBJECT
+      ========================================
+      */
+
+      const url =
+        String(
+          image?.url || ""
+        ).trim();
+
+      if (!url) {
+        return null;
+      }
+
+
+      /*
+      ========================================
+      ALT TEXT
+      ========================================
+      */
+
+      const fileName =
+        url
+          .split("/")
+          .pop()
+          ?.split("?")[0] ||
+        "Page image";
+
+      const alt =
+        String(
+          image?.alt || ""
+        ).trim() ||
+        fileName;
+
+
+      /*
+      ========================================
+      STORAGE
+      ========================================
+      */
+
+      let storage =
+        image?.storage === "cloudinary" ||
+          image?.storage === "s3"
+          ? image.storage
+          : "";
+
+
+      /*
+      ----------------------------------------
+      INFER STORAGE FROM URL
+      ----------------------------------------
+      */
+
+      if (!storage) {
+
+        if (
+          url.includes("res.cloudinary.com")
+        ) {
+          storage = "cloudinary";
+        }
+
+        if (
+          url.includes(".s3.") ||
+          url.includes(".amazonaws.com/")
+        ) {
+          storage = "s3";
+        }
+      }
+
+
+      /*
+      ========================================
+      RETURN IMAGE
+      ========================================
       */
 
       return {
+        url,
 
-        url:
+        alt,
+
+        storage,
+
+        publicId:
           String(
-            image?.url || ""
+            image?.publicId || ""
           ).trim(),
 
-        alt:
+        key:
           String(
-            image?.alt || ""
+            image?.key || ""
           ).trim(),
-
       };
 
     })
-    .filter(
-      (image) =>
-        image.url
-    );
+    .filter(Boolean);
 
 }
 
@@ -593,23 +701,121 @@ export async function PUT(
           existingPage.images
         )
           ? existingPage.images.map(
-            (image) => ({
+            (image) => {
 
-              url:
+              const url =
                 String(
                   image?.url || ""
-                ).trim(),
+                ).trim();
 
-              alt:
+              if (!url) {
+                return null;
+              }
+
+              /*
+              ========================================
+              ALT TEXT
+              ========================================
+              */
+
+              const fileName =
+                url
+                  .split("/")
+                  .pop()
+                  ?.split("?")[0] ||
+                "Page image";
+
+              const alt =
                 String(
                   image?.alt || ""
-                ).trim(),
+                ).trim() ||
+                fileName;
 
-            })
-          ).filter(
-            (image) =>
-              image.url
-          )
+
+              /*
+              ========================================
+              STORAGE
+              ========================================
+              */
+
+              let storage =
+                image?.storage === "cloudinary" ||
+                  image?.storage === "s3"
+                  ? image.storage
+                  : "";
+
+
+              /*
+              ----------------------------------------
+              INFER STORAGE FROM URL
+              ----------------------------------------
+              */
+
+              if (!storage) {
+
+                if (
+                  url.includes(
+                    "res.cloudinary.com"
+                  )
+                ) {
+                  storage = "cloudinary";
+                }
+
+                if (
+                  url.includes(".s3.") ||
+                  url.includes(
+                    ".amazonaws.com/"
+                  )
+                ) {
+                  storage = "s3";
+                }
+
+              }
+
+
+              /*
+              ----------------------------------------
+              OLD/MANUAL URL
+              ----------------------------------------
+    
+              Manual URLs are allowed.
+    
+              If the URL is not Cloudinary or S3,
+              use "cloudinary" only if your schema
+              requires a value.
+    
+              Otherwise "storage" should be optional
+              in the Page model.
+              ----------------------------------------
+              */
+
+              if (!storage) {
+                storage = "cloudinary";
+              }
+
+
+              return {
+
+                url,
+
+                alt,
+
+                storage,
+
+                publicId:
+                  String(
+                    image?.publicId || ""
+                  ).trim(),
+
+                key:
+                  String(
+                    image?.key || ""
+                  ).trim(),
+
+              };
+
+            }
+          ).filter(Boolean)
 
           : [];
 
@@ -632,21 +838,81 @@ export async function PUT(
 
     if (
       images.length === 0 &&
-      !Array.isArray(
-        body.images
-      ) &&
+      !Array.isArray(body.images) &&
       existingPage.imageUrl
     ) {
+
+      const legacyUrl =
+        String(
+          existingPage.imageUrl
+        ).trim();
+
+
+      const legacyFileName =
+        legacyUrl
+          .split("/")
+          .pop()
+          ?.split("?")[0] ||
+        "Page image";
+
+
+      let legacyStorage = "";
+
+
+      if (
+        legacyUrl.includes(
+          "res.cloudinary.com"
+        )
+      ) {
+
+        legacyStorage =
+          "cloudinary";
+
+      }
+
+
+      if (
+        legacyUrl.includes(".s3.") ||
+        legacyUrl.includes(
+          ".amazonaws.com/"
+        )
+      ) {
+
+        legacyStorage =
+          "s3";
+
+      }
+
+
+      /*
+      ----------------------------------------
+      MANUAL URL
+      ----------------------------------------
+    
+      Keep manual image URLs compatible
+      with the required storage field.
+      ----------------------------------------
+      */
+
+      if (!legacyStorage) {
+        legacyStorage = "cloudinary";
+      }
+
 
       images = [
 
         {
-          url:
-            String(
-              existingPage.imageUrl
-            ).trim(),
+          url: legacyUrl,
 
-          alt: "",
+          alt:
+            legacyFileName,
+
+          storage:
+            legacyStorage,
+
+          publicId: "",
+
+          key: "",
 
         },
 
@@ -852,8 +1118,26 @@ FAQ- MAP- IMAGE
 ========================================
 */
 
-    existingPage.faqImageUrl=
-    body.faqImageUrl || "";
+    /*
+ ========================================
+ FAQ IMAGE
+ ========================================
+ */
+
+    existingPage.faqImageUrl =
+      body.faqImageUrl || "";
+
+    existingPage.faqImageStorage =
+      ["none", "cloudinary", "s3"].includes(
+        body.faqImageStorage
+      )
+        ? body.faqImageStorage
+        : "none";
+
+    existingPage.faqImageKey =
+      String(
+        body.faqImageKey || ""
+      ).trim();
 
     /*
     ========================================
@@ -861,27 +1145,27 @@ FAQ- MAP- IMAGE
     ========================================
     */
 
-    existingPage.faqs=
-    Array.isArray(body.faqs)
-      ? body.faqs
-      : [];
-
- /*
-    ========================================
-    YouTube Video
-    ========================================
-    */
-    existingPage.youtubeVideos=Array.isArray(body.youtubeVideos)
-    ? body.youtubeVideos
-    : [],
+    existingPage.faqs =
+      Array.isArray(body.faqs)
+        ? body.faqs
+        : [];
 
     /*
-    ========================================
-    SEO
-    ========================================
-    */
+       ========================================
+       YouTube Video
+       ========================================
+       */
+    existingPage.youtubeVideos = Array.isArray(body.youtubeVideos)
+      ? body.youtubeVideos
+      : [],
 
-    existingPage.seo =
+      /*
+      ========================================
+      SEO
+      ========================================
+      */
+
+      existingPage.seo =
       body.seo || {};
 
 

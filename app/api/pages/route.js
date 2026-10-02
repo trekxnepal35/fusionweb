@@ -53,33 +53,141 @@ function getCleanImages(images) {
 
 
   return images
+
     .map((image) => {
+
+      /*
+      ========================================
+      OLD STRING IMAGE FORMAT
+      ========================================
+      */
 
       if (typeof image === "string") {
 
+        const url =
+          image.trim();
+
+        if (!url) {
+          return null;
+        }
+
+
+        const fileName =
+          url
+            .split("/")
+            .pop()
+            ?.split("?")[0] ||
+          "Page image";
+
+
         return {
-          url: image.trim(),
-          alt: "",
+          url,
+
+          alt:
+            fileName || "Page image",
+
+          storage: "",
+
+          publicId: "",
+
+          key: "",
         };
 
       }
 
 
-      return {
-        url: String(
-          image?.url || ""
-        ).trim(),
+      /*
+      ========================================
+      NEW IMAGE OBJECT
+      ========================================
+      */
 
-        alt: String(
+      const url =
+        String(
+          image?.url || ""
+        ).trim();
+
+
+      if (!url) {
+        return null;
+      }
+
+
+      /*
+      ----------------------------------------
+      ALT TEXT
+      ----------------------------------------
+      */
+
+      const fileName =
+        url
+          .split("/")
+          .pop()
+          ?.split("?")[0] ||
+        "Page image";
+
+
+      const alt =
+        String(
           image?.alt || ""
-        ).trim(),
+        ).trim() ||
+        fileName;
+
+
+      /*
+      ----------------------------------------
+      STORAGE
+      ----------------------------------------
+      */
+
+      const storage =
+        image?.storage === "cloudinary" ||
+          image?.storage === "s3"
+          ? image.storage
+          : "";
+
+
+      /*
+      ----------------------------------------
+      CLOUDINARY PUBLIC ID
+      ----------------------------------------
+      */
+
+      const publicId =
+        String(
+          image?.publicId || ""
+        ).trim();
+
+
+      /*
+      ----------------------------------------
+      S3 KEY
+      ----------------------------------------
+      */
+
+      const key =
+        String(
+          image?.key || ""
+        ).trim();
+
+
+      return {
+
+        url,
+
+        alt,
+
+        storage,
+
+        publicId,
+
+        key,
+
       };
 
     })
-    .filter(
-      (image) =>
-        image.url
-    );
+
+    .filter(Boolean);
 
 }
 
@@ -157,7 +265,7 @@ export async function GET(request) {
 
     const requestedLimit =
       Number(
-        searchParams.get("limit") || 20
+        searchParams.get("limit") || 600
       );
 
 
@@ -171,7 +279,7 @@ export async function GET(request) {
     const limit =
       Number.isInteger(requestedLimit) &&
         requestedLimit > 0 &&
-        requestedLimit <= 100
+        requestedLimit <= 600
         ? requestedLimit
         : 10;
 
@@ -1448,6 +1556,18 @@ FAQ MAP- IMAGE
         faqImageUrl:
           body.faqImageUrl || "",
 
+        faqImageStorage:
+          ["none", "cloudinary", "s3"].includes(
+            body.faqImageStorage
+          )
+            ? body.faqImageStorage
+            : "none",
+
+        faqImageKey:
+          String(
+            body.faqImageKey || ""
+          ).trim(),
+
         /*
         ========================================
         FAQS
@@ -1459,15 +1579,15 @@ FAQ MAP- IMAGE
             ? body.faqs
             : [],
 
-             /*
-        ========================================
-       YouTube Videos
-        ========================================
-        */
+        /*
+   ========================================
+  YouTube Videos
+   ========================================
+   */
         youtubeVideos: Array.isArray(body.youtubeVideos)
-        ? body.youtubeVideos
-        : [],
-        
+          ? body.youtubeVideos
+          : [],
+
 
 
         seo:

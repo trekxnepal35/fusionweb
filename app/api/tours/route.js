@@ -4,6 +4,8 @@ import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
 
+import { getS3SignedUrl } from "@/lib/s3";
+
 
 /*
 ====================================================
@@ -63,7 +65,7 @@ export async function GET(request) {
     ==================================================
     */
 
-    const tours = await Page.find({
+    const tourDocuments = await Page.find({
       pageType: tourPageType._id,
       published: true,
     })
@@ -80,6 +82,135 @@ export async function GET(request) {
         createdAt: -1,
       })
       .lean();
+
+
+    /*
+    ==================================================
+    PREPARE TOUR CARD IMAGES
+    ==================================================
+
+    Priority:
+
+    1. Uploaded S3 image
+    2. Uploaded Cloudinary image
+    3. Manual imageUrl
+    4. Empty string
+
+    S3 images are converted into signed URLs.
+    ==================================================
+    */
+
+    const tours = await Promise.all(
+
+      tourDocuments.map(async (tour) => {
+
+        /*
+        ==============================================
+        DEFAULT TO MANUAL IMAGE URL
+        ==============================================
+        */
+
+        let cardImageUrl = tour.imageUrl || "";
+
+
+        /*
+        ==============================================
+        FIND FIRST UPLOADED IMAGE
+        ==============================================
+        */
+
+        const uploadedImage =
+          Array.isArray(tour.images)
+            ? tour.images.find(
+                (image) =>
+                  image &&
+                  image.url
+              )
+            : null;
+
+
+        /*
+        ==============================================
+        S3 IMAGE
+        ==============================================
+        */
+
+        if (
+          uploadedImage &&
+          uploadedImage.storage === "s3" &&
+          uploadedImage.key
+        ) {
+
+          try {
+
+            cardImageUrl =
+              await getS3SignedUrl(
+                uploadedImage.key,
+                3600
+              );
+
+          } catch (error) {
+
+            console.error(
+              "Failed to create S3 signed URL for tour:",
+              tour._id,
+              error
+            );
+
+
+            /*
+            ------------------------------------------
+            FALL BACK TO MANUAL IMAGE URL
+            ------------------------------------------
+            */
+
+            cardImageUrl =
+              tour.imageUrl || "";
+
+          }
+
+        }
+
+
+        /*
+        ==============================================
+        CLOUDINARY IMAGE
+        ==============================================
+        */
+
+        if (
+          uploadedImage &&
+          uploadedImage.storage === "cloudinary" &&
+          uploadedImage.url
+        ) {
+
+          cardImageUrl =
+            uploadedImage.url;
+
+        }
+
+
+        /*
+        ==============================================
+        RETURN TOUR
+        ==============================================
+        */
+
+        return {
+          ...tour,
+
+          /*
+          --------------------------------------------
+          READY-TO-DISPLAY IMAGE URL
+          --------------------------------------------
+          */
+
+          cardImageUrl,
+        };
+
+      })
+
+    );
 
 
     /*
@@ -101,7 +232,10 @@ export async function GET(request) {
 
   } catch (error) {
 
-    console.error("GET TOURS ERROR:", error);
+    console.error(
+      "GET TOURS ERROR:",
+      error
+    );
 
 
     return NextResponse.json(

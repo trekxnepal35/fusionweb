@@ -91,12 +91,18 @@ export default function PageForm({
             return {
               url: item,
               alt: "",
+              storage: "",
+              publicId: "",
+              key: "",
             };
           }
 
           return {
             url: item?.url || "",
             alt: item?.alt || "",
+            storage: item?.storage || "",
+            publicId: item?.publicId || "",
+            key: item?.key || "",
           };
         })
         .filter((item) => item.url || item.alt);
@@ -116,6 +122,9 @@ export default function PageForm({
         {
           url: initialData.imageUrl,
           alt: "",
+          storage: "",
+          publicId: "",
+          key: "",
         },
       ];
     }
@@ -154,15 +163,30 @@ export default function PageForm({
     highlight: initialData.highlight || "",
 
     /*
-    ------------------------------------------------------
-    LEGACY PRIMARY IMAGE
-    ------------------------------------------------------
-    
-    Kept for backward compatibility.
-    The first image in images becomes imageUrl.
-    */
+ ------------------------------------------------------
+ LEGACY PRIMARY IMAGE
+ ------------------------------------------------------
+ 
+ Kept for backward compatibility.
+ The first image in images becomes imageUrl.
+ */
 
     imageUrl: initialData.imageUrl || "",
+
+    /*
+    ------------------------------------------------------
+    IMAGE STORAGE
+    ------------------------------------------------------
+    
+    Controls where NEW images are uploaded.
+    
+    none       = manual image URL / no upload
+    cloudinary = Cloudinary only
+    s3         = AWS S3 only
+    */
+
+    imageStorage:
+      initialData.imageStorage || "none",
 
     /*
     ------------------------------------------------------
@@ -338,15 +362,24 @@ export default function PageForm({
     importantInformation:
       initialData.importantInformation || "",
 
-    /*
-    ======================================================
-    Map Image
-    ======================================================
-    */
 
+
+    /*
+======================================================
+FAQ MAP IMAGE
+======================================================
+*/
 
     faqImageUrl:
       initialData.faqImageUrl || "",
+
+    faqImageStorage:
+      initialData.faqImageStorage || "none",
+
+    faqImageKey:
+      initialData.faqImageKey || "",
+
+
 
     /*
     ======================================================
@@ -463,6 +496,18 @@ PUBLISHING
   */
 
   const [formError, setFormError] =
+    useState("");
+
+  /*
+------------------------------------------------------
+IMAGE UPLOAD
+------------------------------------------------------
+*/
+
+  const [uploadingImages, setUploadingImages] =
+    useState(false);
+
+  const [uploadError, setUploadError] =
     useState("");
 
   /*
@@ -800,6 +845,20 @@ PUBLISHING
 
   }
 
+  /*
+========================================================
+FAQ IMAGE UPLOAD STATE
+========================================================
+*/
+
+  const [faqImageUploading, setFaqImageUploading] =
+    useState(false);
+
+  const [faqImageUploadError, setFaqImageUploadError] =
+    useState("");
+
+  const [faqImageUploadStorage, setFaqImageUploadStorage] =
+    useState("cloudinary");
 
   /*
   Handle Map Image FQA 
@@ -813,6 +872,171 @@ PUBLISHING
     }));
 
     setFormError("");
+  }
+
+  /*
+========================================================
+UPLOAD FAQ IMAGE
+========================================================
+*/
+
+
+  async function handleFaqImageUpload(e) {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    /*
+    ======================================================
+    GET SELECTED STORAGE
+    ======================================================
+    */
+
+    const storage = formData.faqImageStorage;
+
+    if (
+      storage !== "cloudinary" &&
+      storage !== "s3"
+    ) {
+      setFormError(
+        "Please select Cloudinary or S3 before uploading the FAQ image."
+      );
+
+      e.target.value = "";
+
+      return;
+    }
+
+    /*
+    ======================================================
+    CHECK FILE TYPE
+    ======================================================
+    */
+
+    if (!file.type.startsWith("image/")) {
+      setFormError(
+        "Please select a valid image file."
+      );
+
+      e.target.value = "";
+
+      return;
+    }
+
+    /*
+    ======================================================
+    CHECK FILE SIZE
+    ======================================================
+    */
+
+    if (file.size > 10 * 1024 * 1024) {
+      setFormError(
+        "FAQ image must be 10 MB or smaller."
+      );
+
+      e.target.value = "";
+
+      return;
+    }
+
+    try {
+      setFormError("");
+
+      /*
+      ====================================================
+      CREATE FORM DATA
+      ====================================================
+      */
+
+      const uploadData = new FormData();
+
+      uploadData.append(
+        "storage",
+        storage
+      );
+
+      uploadData.append(
+        "files",
+        file
+      );
+
+      /*
+      ====================================================
+      UPLOAD IMAGE
+      ====================================================
+      */
+
+      const response = await fetch(
+        "/api/uploads/images",
+        {
+          method: "POST",
+          body: uploadData,
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+          "FAQ image upload failed."
+        );
+      }
+
+      /*
+      ====================================================
+      GET UPLOADED IMAGE
+      ====================================================
+      */
+
+      const uploadedImage =
+        Array.isArray(result?.data)
+          ? result.data[0]
+          : null;
+
+      if (!uploadedImage?.url) {
+        throw new Error(
+          "Upload succeeded but no image URL was returned."
+        );
+      }
+
+      /*
+      ====================================================
+      UPDATE FORM DATA
+      ====================================================
+      */
+
+      setFormData((prev) => ({
+        ...prev,
+
+        faqImageUrl:
+          uploadedImage.url,
+
+        faqImageStorage:
+          uploadedImage.storage ||
+          storage,
+
+        faqImageKey:
+          uploadedImage.key || "",
+      }));
+
+    } catch (error) {
+
+      console.error(
+        "FAQ image upload error:",
+        error
+      );
+
+      setFormError(
+        error.message ||
+        "Failed to upload FAQ image."
+      );
+
+    } finally {
+
+      e.target.value = "";
+
+    }
   }
 
   function addFaq() {
@@ -987,20 +1211,20 @@ PUBLISHING
     setFormData((prev) => ({
       ...prev,
 
-
       images: [
         ...prev.images,
 
         {
           url: "",
           alt: "",
+          storage: "",
+          publicId: "",
+          key: "",
         },
       ],
     }));
 
     setFormError("");
-
-
   }
 
   /*
@@ -1057,6 +1281,137 @@ PUBLISHING
 
   }
 
+
+  /*
+------------------------------------------------------
+UPLOAD IMAGE FILES
+------------------------------------------------------
+*/
+
+  async function handleImageUpload(e) {
+    const files = Array.from(
+      e.target.files || []
+    );
+
+    if (files.length === 0) {
+      return;
+    }
+
+    setUploadError("");
+    setFormError("");
+    setUploadingImages(true);
+
+    try {
+      /*
+      --------------------------------------------------
+      GET SELECTED STORAGE
+      --------------------------------------------------
+      */
+
+      const storage =
+        formData.imageStorage;
+
+      if (
+        storage !== "cloudinary" &&
+        storage !== "s3"
+      ) {
+        throw new Error(
+          "Please select Cloudinary or AWS S3 before uploading images."
+        );
+      }
+
+      /*
+      --------------------------------------------------
+      PREPARE FORM DATA
+      --------------------------------------------------
+      */
+
+      const uploadData =
+        new FormData();
+
+      uploadData.append(
+        "storage",
+        storage
+      );
+
+      files.forEach((file) => {
+        uploadData.append(
+          "files",
+          file
+        );
+      });
+
+      /*
+      --------------------------------------------------
+      SEND TO SERVER
+      --------------------------------------------------
+      */
+
+      const response =
+        await fetch(
+          "/api/uploads/images",
+          {
+            method: "POST",
+            body: uploadData,
+          }
+        );
+
+      const result =
+        await response.json();
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        throw new Error(
+          result.message ||
+          "Failed to upload images."
+        );
+      }
+
+      /*
+      --------------------------------------------------
+      ADD UPLOADED IMAGES TO EXISTING GALLERY
+      --------------------------------------------------
+      */
+
+      const uploadedImages =
+        Array.isArray(result.data)
+          ? result.data
+          : [];
+
+      setFormData((prev) => ({
+        ...prev,
+
+        images: [
+          ...prev.images,
+          ...uploadedImages,
+        ],
+      }));
+
+      /*
+      --------------------------------------------------
+      CLEAR FILE INPUT
+      --------------------------------------------------
+      */
+
+      e.target.value = "";
+
+    } catch (error) {
+      console.error(
+        "Image upload error:",
+        error
+      );
+
+      setUploadError(
+        error.message ||
+        "Failed to upload images."
+      );
+
+    } finally {
+      setUploadingImages(false);
+    }
+  }
   /*
   
   # MOVE IMAGE
@@ -1694,17 +2049,23 @@ PUBLISHING
             item?.url || ""
           ).trim(),
 
-
         alt:
           String(
             item?.alt || ""
           ).trim(),
+
+        storage:
+          item?.storage || "",
+
+        publicId:
+          item?.publicId || "",
+
+        key:
+          item?.key || "",
       }))
       .filter(
         (item) => item.url
       );
-
-
   }
 
   /*
@@ -1893,15 +2254,23 @@ PUBLISHING
 
 
       /*
-      ------------------------------------------------------
-      LEGACY IMAGE URL
-      ------------------------------------------------------
-    
-      The first image is also saved to imageUrl.
-      */
+ ------------------------------------------------------
+ LEGACY IMAGE URL
+ ------------------------------------------------------
+ The first image is also saved to imageUrl.
+ */
 
       imageUrl:
         primaryImageUrl,
+
+      /*
+      ------------------------------------------------------
+      IMAGE STORAGE
+      ------------------------------------------------------
+      */
+
+      imageStorage:
+        formData.imageStorage,
 
       /*
       ------------------------------------------------------
@@ -2053,13 +2422,30 @@ PUBLISHING
         formData.importantInformation.trim(),
 
       /*
+====================================================
+FAQ IMAGE MAP URL
+====================================================
+*/
+      /*
       ====================================================
-      Map Image and FQA
+      FAQ IMAGE
       ====================================================
       */
 
       faqImageUrl:
         formData.faqImageUrl.trim(),
+
+      faqImageStorage:
+        ["none", "cloudinary", "s3"].includes(
+          formData.faqImageStorage
+        )
+          ? formData.faqImageStorage
+          : "none",
+
+      faqImageKey:
+        formData.faqImageKey.trim(),
+
+
 
       /*
       ====================================================
@@ -2313,6 +2699,144 @@ PUBLISHING
       ================================================= */}
 
         <div className="md:col-span-2">
+          {/* =================================================
+  IMAGE STORAGE
+================================================= */}
+
+          <div className="mb-6 rounded-xl border bg-gray-50 p-5">
+
+            <div className="mb-4">
+
+              <h4 className="text-base font-semibold text-gray-900">
+                Image Storage
+              </h4>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Choose where new images for this page will be stored.
+                Images are uploaded to only one provider.
+              </p>
+
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+
+              {/* NONE */}
+
+              <label className="cursor-pointer">
+
+                <input
+                  type="radio"
+                  name="imageStorage"
+                  value="none"
+                  checked={
+                    formData.imageStorage === "none"
+                  }
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+
+                <span className="text-sm font-medium text-gray-700">
+                  None / URL Only
+                </span>
+
+              </label>
+
+
+              {/* CLOUDINARY */}
+
+              <label className="cursor-pointer">
+
+                <input
+                  type="radio"
+                  name="imageStorage"
+                  value="cloudinary"
+                  checked={
+                    formData.imageStorage ===
+                    "cloudinary"
+                  }
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+
+                <span className="text-sm font-medium text-gray-700">
+                  Cloudinary
+                </span>
+
+              </label>
+
+
+              {/* S3 */}
+
+              <label className="cursor-pointer">
+
+                <input
+                  type="radio"
+                  name="imageStorage"
+                  value="s3"
+                  checked={
+                    formData.imageStorage === "s3"
+                  }
+                  onChange={handleChange}
+                  className="mr-2"
+                />
+
+                <span className="text-sm font-medium text-gray-700">
+                  AWS S3
+                </span>
+
+              </label>
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              IMAGE FILE UPLOAD
+           ================================================= */}
+
+          {formData.imageStorage !== "none" && (
+
+            <div className="mb-6 rounded-xl border bg-white p-5">
+
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Upload Images
+              </label>
+
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                onChange={handleImageUpload}
+                disabled={uploadingImages}
+                className="w-full rounded-lg border bg-gray-50 px-4 py-3 text-sm"
+              />
+
+              <p className="mt-2 text-xs text-gray-500">
+                Selected images will be uploaded to{" "}
+                <strong>
+                  {formData.imageStorage ===
+                    "cloudinary"
+                    ? "Cloudinary"
+                    : "AWS S3"}
+                </strong>{" "}
+                only.
+              </p>
+
+              {uploadingImages && (
+                <p className="mt-3 text-sm font-medium text-blue-600">
+                  Uploading images...
+                </p>
+              )}
+
+              {uploadError && (
+                <p className="mt-3 text-sm text-red-600">
+                  {uploadError}
+                </p>
+              )}
+
+            </div>
+
+          )}
 
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
 
@@ -2605,8 +3129,9 @@ PUBLISHING
             value={formData.content}
             onChange={handleChange}
             rows="8"
+            
             placeholder="Write page overview..."
-            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500"
+            className="w-full rounded-lg border px-4 py-3 outline-none focus:border-blue-500 whitespace-pre-line"
           />
         </div>
       </div>
@@ -3814,181 +4339,291 @@ PUBLISHING
 
 
 
-      {/* FAQ IMAGE URL */}
+
+
+      {/* MAP IMAGE */}
 
       <div className="mb-8 rounded-xl border bg-gray-50 p-5">
 
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Map Image URL , Trek/Tour-Map
+          MAP Image
         </label>
 
-        <input
-          type="url"
-          value={formData.faqImageUrl}
-          onChange={handleFaqImageUrlChange}
-          placeholder="https://res.cloudinary.com/..."
-          className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-        />
-
-        <p className="mt-2 text-xs text-gray-500">
-          Optional. This image can be displayed on the public page.
+        <p className="mb-4 text-xs text-gray-500">
+          Optional. Choose where the MAP image should be stored.
+          You can also enter an image URL manually.
         </p>
-        <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          {formData.faqImageUrl && (
-            <div className="mt-4">
 
-              <img
-                src={formData.faqImageUrl}
-                alt="FAQ section preview"
-                className="h-48 w-full rounded-lg border object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
+        {/* STORAGE */}
 
-            </div>
-          )}
+        <div className="mb-5">
 
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Image Storage
+          </label>
 
+          <select
+            value={formData.faqImageStorage}
+            onChange={(e) => {
+              const storage = e.target.value;
 
+              setFormData((prev) => ({
+                ...prev,
+                faqImageStorage: storage,
+                faqImageKey:
+                  storage === "s3"
+                    ? prev.faqImageKey
+                    : "",
+              }));
 
-        </div>
-        <button
-          type="button"
-          onClick={addFaq}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
-          + Add FAQ
-        </button>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">
-            Frequently Asked Questions
-          </h2>
-
-          <p className="mt-1 text-sm text-gray-500">
-            Add common questions and answers for this page.
-          </p>
-        </div>
-
-
-
-      </div>
-
-
-      {/* EMPTY FAQ */}
-
-      {formData.faqs.length === 0 && (
-
-        <div className="rounded-lg border border-dashed p-8 text-center">
-
-          <p className="text-sm text-gray-500">
-            No FAQ items added.
-          </p>
-
-          <button
-            type="button"
-            onClick={addFaq}
-            className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+              setFormError("");
+            }}
+            className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
           >
-            Add your first FAQ
-          </button>
+
+            <option value="none">
+              None
+            </option>
+
+            <option value="cloudinary">
+              Cloudinary
+            </option>
+
+            <option value="s3">
+              AWS S3
+            </option>
+
+          </select>
 
         </div>
 
-      )}
+        {/* UPLOAD */}
 
+        {formData.faqImageStorage !== "none" && (
+          <div className="mb-5">
 
-      {/* FAQ ITEMS */}
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Upload MAP Image
+            </label>
 
-      <div className="space-y-5">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleFaqImageUpload}
+              className="w-full rounded-lg border bg-white px-4 py-3"
+            />
 
-        {formData.faqs.map(
-          (faq, index) => (
+            <p className="mt-2 text-xs text-gray-500">
+              Maximum 1 MB. The image will be uploaded to{" "}
+              <strong>
+                {formData.faqImageStorage === "s3"
+                  ? "AWS S3"
+                  : "Cloudinary"}
+              </strong>
+              .
+            </p>
 
-            <div
-              key={index}
-              className="rounded-xl border bg-gray-50 p-5"
-            >
+          </div>
+        )}
 
-              <div className="mb-4 flex items-center justify-between">
+        {/* MANUAL URL */}
 
-                <h3 className="font-semibold text-gray-900">
-                  FAQ {index + 1}
-                </h3>
+        <div className="mb-5">
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeFaq(index)
-                  }
-                  className="text-sm font-medium text-red-600 hover:text-red-700"
-                >
-                  Remove
-                </button>
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            MAP Image URL
+          </label>
 
-              </div>
+          <input
+            type="url"
+            value={formData.faqImageUrl}
+            onChange={handleFaqImageUrlChange}
+            placeholder="https://res.cloudinary.com/..."
+            className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+          />
 
+          <p className="mt-2 text-xs text-gray-500">
+            You can also paste an existing image URL manually.
+          </p>
 
-              {/* QUESTION */}
+        </div>
 
-              <div className="mb-4">
+        {/* STORAGE INFORMATION */}
 
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Question
-                </label>
+        {formData.faqImageUrl && (
+          <div className="mb-4 rounded-lg border bg-white p-3 text-sm">
 
-                <input
-                  type="text"
-                  value={faq.question}
-                  onChange={(e) =>
-                    handleFaqChange(
-                      index,
-                      "question",
-                      e.target.value
-                    )
-                  }
-                  placeholder="What is the best season for this trek?"
-                  className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                />
-
-              </div>
-
-
-              {/* ANSWER */}
-
-              <div>
-
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Answer
-                </label>
-
-                <textarea
-                  value={faq.answer}
-                  onChange={(e) =>
-                    handleFaqChange(
-                      index,
-                      "answer",
-                      e.target.value
-                    )
-                  }
-                  rows="4"
-                  placeholder="Write the answer to this frequently asked question..."
-                  className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
-                />
-
-              </div>
-
+            <div>
+              <span className="font-medium">
+                Storage:
+              </span>{" "}
+              {formData.faqImageStorage === "s3"
+                ? "AWS S3"
+                : formData.faqImageStorage ===
+                  "cloudinary"
+                  ? "Cloudinary"
+                  : "Manual URL"}
             </div>
 
-          )
+            {formData.faqImageKey && (
+              <div className="mt-1 break-all text-xs text-gray-500">
+                S3 Key: {formData.faqImageKey}
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* PREVIEW */}
+
+        {formData.faqImageUrl && (
+          <div className="mt-4">
+
+            <p className="mb-2 text-sm font-medium text-gray-700">
+              Preview
+            </p>
+
+            <img
+              src={formData.faqImageUrl}
+              alt="FAQ section preview"
+              className="h-48 w-full rounded-lg border object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display =
+                  "none";
+              }}
+            />
+
+          </div>
         )}
 
       </div>
 
+
+   {/* EMPTY FAQ */}
+
+{formData.faqs.length === 0 && (
+  <div className="rounded-lg border border-dashed p-8 text-center">
+
+    <p className="text-sm text-gray-500">
+      No FAQ items added.
+    </p>
+
+    <button
+      type="button"
+      onClick={addFaq}
+      className="mt-3 text-sm font-semibold text-blue-600 hover:underline"
+    >
+      Add your first FAQ
+    </button>
+
+  </div>
+)}
+
+
+{/* FAQ ITEMS */}
+
+{formData.faqs.length > 0 && (
+  <div className="space-y-5">
+
+    {formData.faqs.map((faq, index) => (
+
+      <div
+        key={index}
+        className="rounded-xl border bg-gray-50 p-5"
+      >
+
+        <div className="mb-4 flex items-center justify-between">
+
+          <h3 className="font-semibold text-gray-900">
+            FAQ {index + 1}
+          </h3>
+
+          <button
+            type="button"
+            onClick={() => removeFaq(index)}
+            className="text-sm font-medium text-red-600 hover:text-red-700"
+          >
+            Remove
+          </button>
+
+        </div>
+
+
+        {/* QUESTION */}
+
+        <div className="mb-4">
+
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Question
+          </label>
+
+          <input
+            type="text"
+            value={faq.question}
+            onChange={(e) =>
+              handleFaqChange(
+                index,
+                "question",
+                e.target.value
+              )
+            }
+            placeholder="What is the best season for this trek?"
+            className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+          />
+
+        </div>
+
+
+        {/* ANSWER */}
+
+        <div>
+
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Answer
+          </label>
+
+          <textarea
+            value={faq.answer}
+            onChange={(e) =>
+              handleFaqChange(
+                index,
+                "answer",
+                e.target.value
+              )
+            }
+            rows="4"
+            placeholder="Write the answer to this frequently asked question..."
+            className="w-full rounded-lg border bg-white px-4 py-3 outline-none focus:border-blue-500"
+          />
+
+        </div>
+
+      </div>
+
+    ))}
+
+  </div>
+)}
+
+
+{/* ADD FAQ BUTTON */}
+
+<div className="mt-4">
+
+  <button
+    type="button"
+    onClick={addFaq}
+    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+  >
+    + Add FAQ
+  </button>
+
+</div>
+
     </section>
 
 
-   
+
     {/* =========================================
     YOUTUBE VIDEOS
     ========================================= */}

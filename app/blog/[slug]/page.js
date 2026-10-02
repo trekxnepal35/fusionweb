@@ -4,6 +4,7 @@ import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import FeedbackForm from "@/app/components/FeedbackForm";
 import FeedbackList from "@/app/components/FeedbackList";
 import JsonLd from "@/app/components/JsonLd";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 /*
@@ -60,6 +61,97 @@ async function getBlog(slug) {
     console.error("Error fetching blog:", error);
     return null;
   }
+}
+
+/*
+==================================================
+RESOLVE BLOG IMAGE
+==================================================
+*/
+
+async function resolveBlogImage(page) {
+
+  /*
+  ==================================================
+  USE UPLOADED IMAGE FROM images ARRAY FIRST
+  ==================================================
+  */
+
+  const uploadedImage =
+    Array.isArray(page?.images)
+      ? page.images.find(
+        (image) =>
+          image?.url ||
+          image?.key
+      )
+      : null;
+
+
+  /*
+  ==================================================
+  NO UPLOADED IMAGE
+  FALL BACK TO OLD imageUrl
+  ==================================================
+  */
+
+  if (!uploadedImage) {
+    return page?.imageUrl || "";
+  }
+
+
+  /*
+  ==================================================
+  S3 IMAGE
+  ==================================================
+  */
+
+  if (
+    uploadedImage.storage === "s3" &&
+    uploadedImage.key
+  ) {
+
+    try {
+
+      return await getS3SignedUrl(
+        uploadedImage.key,
+        3600
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to create Blog S3 signed URL:",
+        error
+      );
+
+      /*
+      Fall back to imageUrl if
+      signed URL generation fails.
+      */
+
+      return page?.imageUrl || "";
+    }
+  }
+
+
+  /*
+  ==================================================
+  CLOUDINARY OR OTHER UPLOADED IMAGE
+  ==================================================
+  */
+
+  if (uploadedImage.url) {
+    return uploadedImage.url;
+  }
+
+
+  /*
+  ==================================================
+  FINAL FALLBACK
+  ==================================================
+  */
+
+  return page?.imageUrl || "";
 }
 
 
@@ -120,10 +212,10 @@ export async function generateMetadata({ params }) {
 
   const keywords = Array.isArray(seo.keywords)
     ? seo.keywords.filter(
-        (keyword) =>
-          typeof keyword === "string" &&
-          keyword.trim() !== ""
-      )
+      (keyword) =>
+        typeof keyword === "string" &&
+        keyword.trim() !== ""
+    )
     : [];
 
   /*
@@ -150,9 +242,12 @@ export async function generateMetadata({ params }) {
     seo.ogDescription?.trim() ||
     description;
 
+  const uploadedBlogImage =
+    await resolveBlogImage(blog);
+
   const ogImage =
     seo.ogImage?.trim() ||
-    blog.imageUrl ||
+    uploadedBlogImage ||
     "";
 
   /*
@@ -174,8 +269,8 @@ export async function generateMetadata({ params }) {
 
     ...(keywords.length > 0
       ? {
-          keywords,
-        }
+        keywords,
+      }
       : {}),
 
     /*
@@ -218,31 +313,31 @@ export async function generateMetadata({ params }) {
 
       ...(ogImage
         ? {
-            images: [
-              {
-                url: ogImage,
-                alt:
-                  blog.title ||
-                  "Trek X Nepal Blog",
-              },
-            ],
-          }
+          images: [
+            {
+              url: ogImage,
+              alt:
+                blog.title ||
+                "Trek X Nepal Blog",
+            },
+          ],
+        }
         : {}),
 
       ...(blog.createdAt
         ? {
-            publishedTime: new Date(
-              blog.createdAt
-            ).toISOString(),
-          }
+          publishedTime: new Date(
+            blog.createdAt
+          ).toISOString(),
+        }
         : {}),
 
       ...(blog.updatedAt
         ? {
-            modifiedTime: new Date(
-              blog.updatedAt
-            ).toISOString(),
-          }
+          modifiedTime: new Date(
+            blog.updatedAt
+          ).toISOString(),
+        }
         : {}),
     },
 
@@ -263,8 +358,8 @@ export async function generateMetadata({ params }) {
 
       ...(ogImage
         ? {
-            images: [ogImage],
-          }
+          images: [ogImage],
+        }
         : {}),
     },
   };
@@ -378,7 +473,7 @@ export default async function BlogDetailPage({
 
   const nextBlog =
     currentIndex >= 0 &&
-    currentIndex < allBlogs.length - 1
+      currentIndex < allBlogs.length - 1
       ? allBlogs[currentIndex + 1]
       : null;
 
@@ -396,9 +491,27 @@ export default async function BlogDetailPage({
     )
     .slice(0, 3);
 
+  const relatedBlogsWithImages =
+    await Promise.all(
+      relatedBlogs.map(
+        async (relatedBlog) => ({
+          ...relatedBlog,
+
+          resolvedImageUrl:
+            await resolveBlogImage(
+              relatedBlog
+            ),
+        })
+      )
+    );
+
+
   const baseUrl =
     process.env.baseUrl ||
     "http://localhost:3000";
+
+  const featuredImageUrl =
+    await resolveBlogImage(blog);
 
   /*
   ================================================
@@ -406,7 +519,11 @@ export default async function BlogDetailPage({
   ================================================
   */
 
+  const articleImage =
+    await resolveBlogImage(blog);
+
   const articleJsonLd = {
+
     "@context": "https://schema.org",
 
     "@type": "Article",
@@ -416,77 +533,10 @@ export default async function BlogDetailPage({
     description:
       blog.description || "",
 
-    image: blog.imageUrl
-      ? [blog.imageUrl]
+    image: articleImage
+      ? [articleImage]
       : undefined,
 
-    /*
-    ==============================================
-    ARTICLE DATES
-    ==============================================
-    */
-
-    datePublished: blog.createdAt
-      ? new Date(
-          blog.createdAt
-        ).toISOString()
-      : undefined,
-
-    dateModified: blog.updatedAt
-      ? new Date(
-          blog.updatedAt
-        ).toISOString()
-      : undefined,
-
-    /*
-    ==============================================
-    AUTHOR
-    ==============================================
-    */
-
-    author: {
-      "@type": "Organization",
-
-      name: "Trek X Nepal",
-
-      url: baseUrl,
-    },
-
-    /*
-    ==============================================
-    MAIN PAGE
-    ==============================================
-    */
-
-    mainEntityOfPage: {
-      "@type": "WebPage",
-
-      "@id":
-        `${baseUrl}/blog/${blog.slug}`,
-    },
-
-    /*
-    ==============================================
-    ARTICLE URL
-    ==============================================
-    */
-
-    url:
-      `${baseUrl}/blog/${blog.slug}`,
-
-    /*
-    ==============================================
-    PUBLISHER
-    ==============================================
-    */
-
-    publisher: {
-      "@type": "Organization",
-
-      name: "Trek X Nepal",
-
-      url: baseUrl,
-    },
   };
 
   /*
@@ -537,7 +587,7 @@ export default async function BlogDetailPage({
           ARTICLE JSON-LD
       ======================================== */}
 
-      <JsonLd data={articleJsonLd}/>
+      <JsonLd data={articleJsonLd} />
 
       {/* ========================================
           BREADCRUMB JSON-LD
@@ -635,27 +685,29 @@ export default async function BlogDetailPage({
         {/* ======================================
             FEATURED IMAGE
         ====================================== */}
+        
 
-        {blog.imageUrl && (
+
+        {featuredImageUrl && (
           <div
             className="
-              mx-auto
-              mt-10
-              overflow-hidden
-              rounded-2xl
-            "
+      mx-auto
+      mt-10
+      overflow-hidden
+      rounded-2xl
+    "
           >
             <img
-              src={blog.imageUrl}
+              src={featuredImageUrl}
               alt={
                 blog.title ||
                 "Blog image"
               }
               className="
-                max-h-[600px]
-                w-full
-                object-cover
-              "
+        max-h-[600px]
+        w-full
+        object-cover
+      "
             />
           </div>
         )}
@@ -699,8 +751,8 @@ export default async function BlogDetailPage({
 
         {(previousBlog ||
           nextBlog) && (
-          <div
-            className="
+            <div
+              className="
               mx-auto
               mt-14
               max-w-4xl
@@ -708,24 +760,24 @@ export default async function BlogDetailPage({
               border-b
               py-8
             "
-          >
-            <div
-              className="
+            >
+              <div
+                className="
                 grid
                 gap-6
                 sm:grid-cols-2
               "
-            >
+              >
 
-              {/* ==================================
+                {/* ==================================
                   PREVIOUS
               ================================== */}
 
-              <div>
-                {previousBlog ? (
-                  <Link
-                    href={`/blog/${previousBlog.slug}`}
-                    className="
+                <div>
+                  {previousBlog ? (
+                    <Link
+                      href={`/blog/${previousBlog.slug}`}
+                      className="
                       group
                       block
                       rounded-xl
@@ -737,19 +789,19 @@ export default async function BlogDetailPage({
                       hover:border-blue-300
                       hover:bg-blue-50
                     "
-                  >
-                    <p
-                      className="
+                    >
+                      <p
+                        className="
                         text-sm
                         font-semibold
                         text-gray-500
                       "
-                    >
-                      ← Previous Article
-                    </p>
+                      >
+                        ← Previous Article
+                      </p>
 
-                    <h3
-                      className="
+                      <h3
+                        className="
                         mt-2
                         line-clamp-2
                         font-bold
@@ -757,24 +809,24 @@ export default async function BlogDetailPage({
                         transition
                         group-hover:text-blue-600
                       "
-                    >
-                      {previousBlog.title}
-                    </h3>
-                  </Link>
-                ) : (
-                  <div />
-                )}
-              </div>
+                      >
+                        {previousBlog.title}
+                      </h3>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                </div>
 
-              {/* ==================================
+                {/* ==================================
                   NEXT
               ================================== */}
 
-              <div>
-                {nextBlog ? (
-                  <Link
-                    href={`/blog/${nextBlog.slug}`}
-                    className="
+                <div>
+                  {nextBlog ? (
+                    <Link
+                      href={`/blog/${nextBlog.slug}`}
+                      className="
                       group
                       block
                       rounded-xl
@@ -788,19 +840,19 @@ export default async function BlogDetailPage({
                       hover:bg-blue-50
                       sm:text-right
                     "
-                  >
-                    <p
-                      className="
+                    >
+                      <p
+                        className="
                         text-sm
                         font-semibold
                         text-gray-500
                       "
-                    >
-                      Next Article →
-                    </p>
+                      >
+                        Next Article →
+                      </p>
 
-                    <h3
-                      className="
+                      <h3
+                        className="
                         mt-2
                         line-clamp-2
                         font-bold
@@ -808,18 +860,18 @@ export default async function BlogDetailPage({
                         transition
                         group-hover:text-blue-600
                       "
-                    >
-                      {nextBlog.title}
-                    </h3>
-                  </Link>
-                ) : (
-                  <div />
-                )}
-              </div>
+                      >
+                        {nextBlog.title}
+                      </h3>
+                    </Link>
+                  ) : (
+                    <div />
+                  )}
+                </div>
 
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* ======================================
             RELATED BLOG POSTS
@@ -869,7 +921,7 @@ export default async function BlogDetailPage({
               "
             >
 
-              {relatedBlogs.map(
+              {relatedBlogsWithImages.map(
                 (relatedBlog) => (
                   <article
                     key={
@@ -903,23 +955,23 @@ export default async function BlogDetailPage({
                         "
                       >
 
-                        {relatedBlog.imageUrl ? (
+                        {relatedBlog.resolvedImageUrl ? (
                           <img
                             src={
-                              relatedBlog.imageUrl
+                              relatedBlog.resolvedImageUrl
                             }
                             alt={
                               relatedBlog.title ||
                               "Related blog image"
                             }
                             className="
-                              h-full
-                              w-full
-                              object-cover
-                              transition
-                              duration-500
-                              group-hover:scale-105
-                            "
+      h-full
+      w-full
+      object-cover
+      transition
+      duration-500
+      group-hover:scale-105
+    "
                           />
                         ) : (
                           <div

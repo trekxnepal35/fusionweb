@@ -14,6 +14,7 @@ import FeedbackList from "@/app/components/FeedbackList";
 import FeedbackForm from "@/app/components/FeedbackForm";
 import SectionNavigation from "@/app/components/SectionNavigation";
 import SectionCollapse from "@/app/components/SectionCollapse";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 /*
@@ -62,7 +63,25 @@ async function getTour(slug) {
       .lean();
 
 
-  return tour;
+  /*
+========================================
+FAQ IMAGE URL
+========================================
+*/
+
+if (
+  tour &&
+  tour.faqImageStorage === "s3" &&
+  tour.faqImageKey
+) {
+  tour.faqImageUrl =
+    await getS3SignedUrl(
+      tour.faqImageKey,
+      3600
+    );
+}
+
+return tour;
 }
 
 
@@ -251,11 +270,48 @@ export default async function TourDetailPage({
   ========================================
   */
   const galleryImages = Array.isArray(tour.images)
-    ? tour.images.map((image) => ({
-      url: image.url || "",
-      alt: image.alt || "",
-    }))
-    : [];
+  ? await Promise.all(
+      tour.images.map(async (image) => {
+
+        let url = image.url || "";
+
+        /*
+        ============================================
+        S3 IMAGE
+        ============================================
+        */
+
+        if (
+          image.storage === "s3" &&
+          image.key
+        ) {
+          try {
+
+            url = await getS3SignedUrl(
+              image.key,
+              3600
+            );
+
+          } catch (error) {
+
+            console.error(
+              "Failed to create S3 signed URL:",
+              error
+            );
+
+            url = "";
+
+          }
+        }
+
+        return {
+          url,
+          alt: image.alt || tour.title,
+        };
+
+      })
+    )
+  : [];
 
   /*
   ========================================
@@ -404,7 +460,7 @@ export default async function TourDetailPage({
                   QUICK INFORMATION
               ================================= */}
 
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="text-justify grid grid-cols-2 gap-4 md:grid-cols-4">
                 <InfoCard
                   label="Duration"
                   value={details.duration}
@@ -440,7 +496,7 @@ export default async function TourDetailPage({
                     <hr />
 
 
-                    <div className="whitespace-pre-line leading-8 text-gray-700">
+                    <div className="text-justify whitespace-pre-line leading-8 text-gray-700 ">
 
                       {tour.content}
 
@@ -462,7 +518,7 @@ export default async function TourDetailPage({
 
                   <SectionCollapse title="Highlight">
                     <hr />
-                    <div className="whitespace-pre-line leading-8 text-gray-700">
+                    <div className="text-justify whitespace-pre-line leading-8 text-gray-700">
 
                       {tour.highlight}
 
@@ -476,7 +532,7 @@ export default async function TourDetailPage({
                   TOUR Information
               ================================= */}
               <SectionCollapse title="Tour Information">
-                <div id="tour-information" className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                <div id="tour-information" className="text-justify grid grid-cols-2 gap-4 md:grid-cols-3">
 
 
                   <InfoCard
@@ -546,10 +602,10 @@ export default async function TourDetailPage({
 
                           <div
                             key={index}
-                            className="rounded-xl border p-6 shadow-sm"
+                            className="rounded-xl border p-6  shadow-sm"
                           >
 
-                            <div className="flex gap-5">
+                            <div className="flex gap-5 ">
 
                               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
 
@@ -558,12 +614,12 @@ export default async function TourDetailPage({
                               </div>
 
                               <SectionCollapse title={day.title}>
-                              <div>    
+                              <div >    
                               
 
                                 {day.description && (
 
-                                  <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+                                  <p className="text-justify  mt-3  whitespace-pre-line leading-7 text-gray-600">
 
                                     {day.description}
 
@@ -641,7 +697,7 @@ export default async function TourDetailPage({
                             className="flex gap-3"
                           >
 
-                            <span className="font-bold text-green-600">
+                            <span className="text-justify font-bold text-green-600">
                               ✓
                             </span>
 
@@ -680,7 +736,7 @@ export default async function TourDetailPage({
 
                           <li
                             key={index}
-                            className="flex gap-3"
+                            className="text-justify flex gap-3"
                           >
 
                             <span className="font-bold text-red-600">
@@ -713,7 +769,7 @@ export default async function TourDetailPage({
                   <SectionCollapse title="Important Information">
                     <hr />
 
-                    <p className="whitespace-pre-line leading-7 text-gray-700">
+                    <p className="text-justify whitespace-pre-line leading-7 text-gray-700">
 
                       {tour.importantInformation}
 
@@ -914,7 +970,7 @@ export default async function TourDetailPage({
                               className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
                             >
 
-                              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+                              <summary className="text-justify flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
 
                                 <span>
                                   {faq.question}
@@ -930,7 +986,7 @@ export default async function TourDetailPage({
 
                                 <div className="mt-4 border-t border-gray-100 pt-4">
 
-                                  <p className="leading-7 text-gray-600">
+                                  <p className="text-justify leading-7 text-gray-600">
                                     {faq.answer}
                                   </p>
 

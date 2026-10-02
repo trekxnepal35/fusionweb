@@ -9,7 +9,10 @@ import Admin from "@/models/Admin";
 import { verifyAdminToken } from "@/lib/auth";
 
 
-export async function POST(request) {
+export async function POST(
+  request,
+  { params }
+) {
 
   try {
 
@@ -61,42 +64,20 @@ export async function POST(request) {
 
 
     // =====================================================
-    // CONNECT DATABASE
+    // GET USER ID
     // =====================================================
 
-    await connectDB();
+    const { id } =
+      await params;
 
 
-    // =====================================================
-    // READ REQUEST
-    // =====================================================
-
-    const body =
-      await request.json();
-
-
-    const {
-      name,
-      email,
-      password,
-    } = body;
-
-
-    // =====================================================
-    // VALIDATION
-    // =====================================================
-
-    if (
-      !name?.trim() ||
-      !email?.trim() ||
-      !password
-    ) {
+    if (!id) {
 
       return NextResponse.json(
         {
           success: false,
           message:
-            "Name, email and password are required.",
+            "User ID is required.",
         },
         {
           status: 400,
@@ -106,11 +87,33 @@ export async function POST(request) {
     }
 
 
-    const cleanName =
-      name.trim();
+    // =====================================================
+    // REQUEST BODY
+    // =====================================================
 
-    const cleanEmail =
-      email.trim().toLowerCase();
+    const body =
+      await request.json();
+
+
+    const {
+      password,
+    } = body;
+
+
+    if (!password) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "New password is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+
+    }
 
 
     if (password.length < 8) {
@@ -130,25 +133,26 @@ export async function POST(request) {
 
 
     // =====================================================
-    // CHECK EXISTING ADMIN
+    // DATABASE
     // =====================================================
 
-    const existingAdmin =
-      await Admin.findOne({
-        email: cleanEmail,
-      });
+    await connectDB();
 
 
-    if (existingAdmin) {
+    const admin =
+      await Admin.findById(id);
+
+
+    if (!admin) {
 
       return NextResponse.json(
         {
           success: false,
           message:
-            "An admin user with this email already exists.",
+            "Admin user not found.",
         },
         {
-          status: 409,
+          status: 404,
         }
       );
 
@@ -156,7 +160,7 @@ export async function POST(request) {
 
 
     // =====================================================
-    // HASH PASSWORD
+    // HASH NEW PASSWORD
     // =====================================================
 
     const hashedPassword =
@@ -166,26 +170,11 @@ export async function POST(request) {
       );
 
 
-    // =====================================================
-    // CREATE ADMIN
-    // =====================================================
+    admin.password =
+      hashedPassword;
 
-    const admin =
-      await Admin.create({
 
-        name:
-          cleanName,
-
-        email:
-          cleanEmail,
-
-        password:
-          hashedPassword,
-
-        role:
-          "admin",
-
-      });
+    await admin.save();
 
 
     // =====================================================
@@ -197,23 +186,7 @@ export async function POST(request) {
       success: true,
 
       message:
-        "Admin user created successfully.",
-
-      data: {
-
-        id:
-          String(admin._id),
-
-        name:
-          admin.name,
-
-        email:
-          admin.email,
-
-        role:
-          admin.role,
-
-      },
+        "Password reset successfully.",
 
     });
 
@@ -221,7 +194,7 @@ export async function POST(request) {
   } catch (error) {
 
     console.error(
-      "Admin registration error:",
+      "Reset password error:",
       error
     );
 
@@ -230,7 +203,7 @@ export async function POST(request) {
       {
         success: false,
         message:
-          "Failed to create admin user.",
+          "Failed to reset password.",
       },
       {
         status: 500,

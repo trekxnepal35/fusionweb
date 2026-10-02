@@ -13,6 +13,7 @@ import ImageGallery from "@/app/components/ImageGallery";
 import SectionNavigation from "@/app/components/SectionNavigation";
 import SectionCollapse from "@/app/components/SectionCollapse";
 import YouTubeVideos from "@/app/components/YouTubeVideos";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 
@@ -61,7 +62,25 @@ async function getTrek(slug) {
       .lean();
 
 
-  return trek;
+  /*
+========================================
+FAQ IMAGE URL
+========================================
+*/
+
+if (
+  trek &&
+  trek.faqImageStorage === "s3" &&
+  trek.faqImageKey
+) {
+  trek.faqImageUrl =
+    await getS3SignedUrl(
+      trek.faqImageKey,
+      3600
+    );
+}
+
+return trek;
 }
 
 
@@ -247,12 +266,62 @@ export default async function TrekDetailPage({
       url: `/treks/trek/${trek.slug}`,
     },
   ];
-
+  
+// Gallery Images
   const galleryImages = Array.isArray(trek.images)
-  ? trek.images.map((image) => ({
-      url: image.url || "",
-      alt: image.alt || "",
-    }))
+  ? await Promise.all(
+      trek.images.map(async (image) => {
+
+        let url = image.url || "";
+
+        /*
+        ============================================
+        S3 IMAGE
+        ============================================
+        */
+
+        if (
+          image.storage === "s3" &&
+          image.key
+        ) {
+          try {
+
+            url = await getS3SignedUrl(
+              image.key,
+              3600
+            );
+
+          } catch (error) {
+
+            console.error(
+              "Failed to create S3 signed URL:",
+              error
+            );
+
+            url = "";
+
+          }
+        }
+
+
+        /*
+        ============================================
+        RETURN IMAGE
+        ============================================
+        */
+
+        return {
+
+          url,
+
+          alt:
+            image.alt ||
+            trek.title,
+
+        };
+
+      })
+    )
   : [];
 
   return (
@@ -397,7 +466,7 @@ export default async function TrekDetailPage({
                   QUICK INFORMATION
               ================================= */}
 
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="text-justify grid grid-cols-2 gap-4 md:grid-cols-4">
                 <InfoCard
                   label="Duration"
                   value={details.duration}
@@ -436,7 +505,7 @@ export default async function TrekDetailPage({
                   <hr/>
                     
                   <div                   
-                    className="whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
+                    className="text-justify whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
                   >
                     {trek.content}
                   </div>
@@ -455,7 +524,7 @@ export default async function TrekDetailPage({
                   <hr />
 
                   <div
-                  className="whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
+                  className="text-justify whitespace-pre-line leading-8 text-gray-700 transition-all duration-300"
                   >
 
                     {trek.highlight}
@@ -478,7 +547,7 @@ export default async function TrekDetailPage({
               <SectionCollapse title="Trek Information">
               <hr />
 
-                <div className="grid gap-4 md:grid-cols-2 transition-all duration-300">
+                <div className="text-justify grid gap-4 md:grid-cols-2 transition-all duration-300">
 
                   <DetailRow
                     label="Starting Point"
@@ -568,7 +637,7 @@ export default async function TrekDetailPage({
                               <SectionCollapse title={day.title}>
                               {day.description && (
 
-                                <p className="mt-3 whitespace-pre-line leading-7 text-gray-600">
+                                <p className="text-justify mt-3 whitespace-pre-line leading-7 text-gray-600">
 
                                   {day.description}
 
@@ -644,7 +713,7 @@ export default async function TrekDetailPage({
                           className="flex gap-3 text-gray-700"
                         >
 
-                          <span className="font-bold text-green-600">
+                          <span className="text-justify font-bold text-green-600">
                             ✓
                           </span>
 
@@ -684,7 +753,7 @@ export default async function TrekDetailPage({
                           className="flex gap-3 text-gray-700"
                         >
 
-                          <span className="font-bold text-red-600">
+                          <span className="text-justify font-bold text-red-600">
                             ×
                           </span>
 
@@ -717,7 +786,7 @@ export default async function TrekDetailPage({
 
 
 
-                  <p className="whitespace-pre-line leading-7 text-gray-700 transition-all duration-300">
+                  <p className="text-justify whitespace-pre-line leading-7 text-gray-700 transition-all duration-300">
 
                     {trek.importantInformation}
 
@@ -929,7 +998,7 @@ export default async function TrekDetailPage({
                             className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
                           >
 
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+                            <summary className="text-justify flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
 
                               <span>
                                 {faq.question}
@@ -945,7 +1014,7 @@ export default async function TrekDetailPage({
 
                               <div className="mt-4 border-t border-gray-100 pt-4">
 
-                                <p className="leading-7 text-gray-600">
+                                <p className="text-justify leading-7 text-gray-600">
                                   {faq.answer}
                                 </p>
 

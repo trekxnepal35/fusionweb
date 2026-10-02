@@ -3,6 +3,7 @@ import Link from "next/link";
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 
@@ -77,7 +78,7 @@ export default async function TreksPage() {
   ==================================================
   */
 
-  const treks = await Page.find({
+  const trekDocuments = await Page.find({
     pageType: trekPageType._id,
     published: true,
   })
@@ -90,6 +91,104 @@ export default async function TreksPage() {
       createdAt: -1,
     })
     .lean();
+
+
+  /*
+  ====================================================
+  RESOLVE TREK CARD IMAGES
+  ====================================================
+  */
+
+  const treks = await Promise.all(
+
+    trekDocuments.map(async (trek) => {
+
+      /*
+      ================================================
+      FIND UPLOADED IMAGE
+      ================================================
+      */
+
+      const uploadedImage = Array.isArray(trek.images)
+        ? trek.images.find(
+          (image) =>
+            image &&
+            (image.url || image.key)
+        )
+        : null;
+
+
+      /*
+      ================================================
+      DEFAULT TO LEGACY imageUrl
+      ================================================
+      */
+
+      let cardImageUrl = trek.imageUrl || "";
+
+
+      /*
+      ================================================
+      S3 IMAGE
+      ================================================
+      */
+
+      if (
+        uploadedImage?.storage === "s3" &&
+        uploadedImage?.key
+      ) {
+
+        try {
+
+          cardImageUrl = await getS3SignedUrl(
+            uploadedImage.key,
+            3600
+          );
+
+        } catch (error) {
+
+          console.error(
+            "Failed to create Trek S3 signed URL:",
+            error
+          );
+
+          cardImageUrl = "";
+
+        }
+
+      }
+
+
+      /*
+      ================================================
+      CLOUDINARY IMAGE
+      ================================================
+      */
+
+      else if (
+        uploadedImage?.storage === "cloudinary" &&
+        uploadedImage?.url
+      ) {
+
+        cardImageUrl = uploadedImage.url;
+
+      }
+
+
+      /*
+      ================================================
+      RETURN TREK
+      ================================================
+      */
+
+      return {
+        ...trek,
+        cardImageUrl,
+      };
+
+    })
+
+  );
 
 
   /*
@@ -186,10 +285,10 @@ export default async function TreksPage() {
                       IMAGE
                   ================================== */}
 
-                  {trek.imageUrl ? (
+                  {trek.cardImageUrl ? (
 
                     <img
-                      src={trek.imageUrl}
+                      src={trek.cardImageUrl}
                       alt={trek.title}
                       className="h-56 w-full object-cover"
                     />
@@ -289,8 +388,8 @@ export default async function TreksPage() {
                     {/* BUTTON */}
 
                     <Link
-                    href={`/treks/trek/${trek.slug}`}
-                    className="mt-6 inline-block rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white transition hover:bg-gray-700"
+                      href={`/treks/trek/${trek.slug}`}
+                      className="mt-6 inline-block rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white transition hover:bg-gray-700"
                     >
                       View Trek
                     </Link>

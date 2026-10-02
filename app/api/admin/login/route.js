@@ -13,8 +13,16 @@ export async function POST(request) {
 
   try {
 
+    // =====================================================
+    // CONNECT DATABASE
+    // =====================================================
+
     await connectDB();
 
+
+    // =====================================================
+    // READ REQUEST
+    // =====================================================
 
     const body =
       await request.json();
@@ -26,8 +34,12 @@ export async function POST(request) {
     } = body;
 
 
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
     if (
-      !email ||
+      !email?.trim() ||
       !password
     ) {
 
@@ -45,12 +57,19 @@ export async function POST(request) {
     }
 
 
+    const cleanEmail =
+      email
+        .trim()
+        .toLowerCase();
+
+
+    // =====================================================
+    // FIND ADMIN
+    // =====================================================
+
     const admin =
       await Admin.findOne({
-
-        email:
-          email.toLowerCase(),
-
+        email: cleanEmail,
       });
 
 
@@ -69,6 +88,10 @@ export async function POST(request) {
 
     }
 
+
+    // =====================================================
+    // CHECK PASSWORD
+    // =====================================================
 
     const passwordMatch =
       await bcrypt.compare(
@@ -93,9 +116,37 @@ export async function POST(request) {
     }
 
 
+    // =====================================================
+    // CHECK JWT SECRET
+    // =====================================================
+
+    if (!process.env.JWT_SECRET) {
+
+      console.error(
+        "JWT_SECRET is not configured."
+      );
+
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Server authentication configuration error.",
+        },
+        {
+          status: 500,
+        }
+      );
+
+    }
+
+
+    // =====================================================
+    // CREATE JWT
+    // =====================================================
+
     const token =
       jwt.sign(
-
         {
           id:
             String(admin._id),
@@ -105,7 +156,6 @@ export async function POST(request) {
 
           role:
             admin.role,
-
         },
 
         process.env.JWT_SECRET,
@@ -114,9 +164,12 @@ export async function POST(request) {
           expiresIn:
             "1d",
         }
-
       );
 
+
+    // =====================================================
+    // CREATE RESPONSE
+    // =====================================================
 
     const response =
       NextResponse.json({
@@ -127,6 +180,10 @@ export async function POST(request) {
           "Login successful.",
 
         data: {
+
+          id:
+            String(admin._id),
+
           name:
             admin.name,
 
@@ -135,10 +192,15 @@ export async function POST(request) {
 
           role:
             admin.role,
+
         },
 
       });
 
+
+    // =====================================================
+    // SET ADMIN COOKIE
+    // =====================================================
 
     response.cookies.set(
       "admin_token",
@@ -159,6 +221,24 @@ export async function POST(request) {
       }
     );
 
+
+    // =====================================================
+    // DEBUG SERVER LOG
+    // =====================================================
+
+    console.log(
+      "ADMIN LOGIN SUCCESS:",
+      admin.email
+    );
+
+    console.log(
+      "ADMIN TOKEN COOKIE SET: true"
+    );
+
+
+    // =====================================================
+    // RETURN RESPONSE
+    // =====================================================
 
     return response;
 

@@ -57,7 +57,7 @@ export default function MenuItem({
           flex
           items-center
           justify-between
-          gap-3
+          gap-1
           whitespace-nowrap
 
           ${
@@ -80,7 +80,7 @@ export default function MenuItem({
                 `
           }
 
-          hover:bg-gray-100
+          hover:bg-gray-300
         `}
       >
 

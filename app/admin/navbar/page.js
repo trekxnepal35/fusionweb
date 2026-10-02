@@ -16,7 +16,7 @@ export default function NavbarAdminPage() {
 
   const [editingId, setEditingId] = useState(null);
 
-  
+
 
   const [form, setForm] = useState({
     title: "",
@@ -69,7 +69,7 @@ export default function NavbarAdminPage() {
 
         console.error(
           result.message ||
-            "Failed to load menus"
+          "Failed to load menus"
         );
 
         setMenus([]);
@@ -168,7 +168,7 @@ export default function NavbarAdminPage() {
         (menu) =>
           menu.parentId &&
           String(menu.parentId) ===
-            String(parentId)
+          String(parentId)
       );
 
 
@@ -218,7 +218,7 @@ export default function NavbarAdminPage() {
         return (
           menu.parentId &&
           String(menu.parentId) ===
-            String(parentId)
+          String(parentId)
         );
 
       })
@@ -277,11 +277,11 @@ export default function NavbarAdminPage() {
 
   const excludedIds = editingId
     ? [
-        String(editingId),
-        ...getDescendantIds(
-          editingId
-        ),
-      ]
+      String(editingId),
+      ...getDescendantIds(
+        editingId
+      ),
+    ]
     : [];
 
 
@@ -331,7 +331,7 @@ export default function NavbarAdminPage() {
       editingId &&
       form.parentId &&
       String(editingId) ===
-        String(form.parentId)
+      String(form.parentId)
     ) {
 
       alert(
@@ -438,7 +438,7 @@ export default function NavbarAdminPage() {
 
         alert(
           result.message ||
-            "Unable to save menu."
+          "Unable to save menu."
         );
 
         return;
@@ -570,7 +570,7 @@ export default function NavbarAdminPage() {
         (item) =>
           item.parentId &&
           String(item.parentId) ===
-            String(id)
+          String(id)
       );
 
 
@@ -620,7 +620,7 @@ export default function NavbarAdminPage() {
 
         alert(
           result.message ||
-            "Unable to delete menu."
+          "Unable to delete menu."
         );
 
         return;
@@ -718,7 +718,7 @@ export default function NavbarAdminPage() {
 
         alert(
           result.message ||
-            "Unable to update status."
+          "Unable to update status."
         );
 
         return;
@@ -768,7 +768,7 @@ export default function NavbarAdminPage() {
           return (
             menu.parentId &&
             String(menu.parentId) ===
-              String(parentId)
+            String(parentId)
           );
 
         })
@@ -794,7 +794,7 @@ export default function NavbarAdminPage() {
             (child) =>
               child.parentId &&
               String(child.parentId) ===
-                String(menu._id)
+              String(menu._id)
           );
 
 
@@ -928,10 +928,9 @@ export default function NavbarAdminPage() {
                     font-medium
                     w-fit
 
-                    ${
-                      menu.active !== false
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
+                    ${menu.active !== false
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-500"
                     }
                   `}
                 >
@@ -1052,34 +1051,34 @@ export default function NavbarAdminPage() {
   }
 
 
-  // Logout Function
+  // Logout Function Disable for now
 
-  async function handleLogout() {
+  // async function handleLogout() {
 
-    try {
-  
-      await fetch(
-        "/api/admin/logout",
-        {
-          method: "POST",
-        }
-      );
-  
-  
-      window.location.href =
-        "/admin/login";
-  
-  
-    } catch (error) {
-  
-      console.error(
-        "Logout error:",
-        error
-      );
-  
-    }
-  
-  }
+  //   try {
+
+  //     await fetch(
+  //       "/api/admin/logout",
+  //       {
+  //         method: "POST",
+  //       }
+  //     );
+
+
+  //     window.location.href =
+  //       "/admin/login";
+
+
+  //   } catch (error) {
+
+  //     console.error(
+  //       "Logout error:",
+  //       error
+  //     );
+
+  //   }
+
+  // }
 
   // =====================================================
   // PAGE UI
@@ -1113,33 +1112,20 @@ export default function NavbarAdminPage() {
           Navbar Management
         </h1>
 
-<div className="flex justify-between">
-<p
-          className="
+        <div className="flex justify-between">
+          <p
+            className="
             text-gray-500
             mt-2
           "
-        >
-          Manage your dynamic nested
-          navigation menu.
-        </p>
-        <button
-  type="button"
-  onClick={handleLogout}
-  className="
-    bg-red-600
-    text-white
-    px-4
-    py-2
-    rounded-lg
-    hover:bg-red-700
-  "
->
-  Logout
-</button>
+          >
+            Manage your dynamic nested
+            navigation menu.
+          </p>
+          
 
-</div>
-       
+        </div>
+
 
       </div>
 

@@ -425,6 +425,7 @@ imageUrl remains the main / featured image.
 
 gallery contains additional images.
 */
+/*
 images: {
   type: [{
     url: { type: String, required: true },
@@ -432,7 +433,47 @@ images: {
   }],
   default: []
 },
+*/
 
+imageStorage: {
+  type: String,
+  enum: ["none", "cloudinary", "s3"],
+  default: "none",
+},
+
+images: {
+  type: [
+    {
+      url: {
+        type: String,
+        required: true,
+      },
+
+      alt: {
+        type: String,
+        required: true,
+      },
+
+      storage: {
+        type: String,
+        enum: ["cloudinary", "s3"],
+        required: true,
+      },
+
+      publicId: {
+        type: String,
+        default: "",
+      },
+
+      key: {
+        type: String,
+        default: "",
+      },
+    },
+  ],
+
+  default: [],
+},
 
 
 description: {
@@ -546,7 +587,20 @@ Map-FAQ IMAGE
 ======================================================
 */
 
+
 faqImageUrl: {
+  type: String,
+  default: "",
+  trim: true,
+},
+
+faqImageStorage: {
+  type: String,
+  enum: ["none", "cloudinary", "s3"],
+  default: "none",
+},
+
+faqImageKey: {
   type: String,
   default: "",
   trim: true,
