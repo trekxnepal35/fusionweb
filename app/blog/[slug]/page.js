@@ -5,6 +5,7 @@ import FeedbackForm from "@/app/components/FeedbackForm";
 import FeedbackList from "@/app/components/FeedbackList";
 import JsonLd from "@/app/components/JsonLd";
 import { getS3SignedUrl } from "@/lib/s3";
+import YouTubeVideos from "@/app/components/YouTubeVideos";
 
 
 /*
@@ -489,7 +490,7 @@ export default async function BlogDetailPage({
         String(item._id) !==
         String(blog._id)
     )
-    .slice(0, 3);
+    .slice(0, 15);
 
   const relatedBlogsWithImages =
     await Promise.all(
@@ -642,17 +643,19 @@ export default async function BlogDetailPage({
       {/* ========================================
           BLOG ARTICLE
       ======================================== */}
+      <section className="mx-auto max-w-full px-6 py-24 lg:px-8">
 
-      <article className="mx-auto max-w-5xl px-4 py-10 sm:py-16">
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-start">
+          <article className="mx-auto max-w-full px-4 py-10 sm:py-16">
 
-        {/* ======================================
+            {/* ======================================
             HEADER
         ====================================== */}
 
-        <header className="mx-auto max-w-4xl text-center">
+            <header className="mx-auto max-w-full text-center">
 
-          <h1
-            className="
+              <h1
+                className="
               text-3xl
               font-bold
               leading-tight
@@ -660,99 +663,144 @@ export default async function BlogDetailPage({
               sm:text-4xl
               lg:text-5xl
             "
-          >
-            {blog.title}
-          </h1>
+              >
+                {blog.title}
+              </h1>
 
-          {blog.description && (
-            <p
-              className="
+              {blog.description && (
+                <p
+                  className="
+              whitespace-pre-line
+              text-justify
                 mx-auto
                 mt-6
-                max-w-3xl
+                max-w-full
                 text-base
                 leading-7
                 text-gray-600
                 sm:text-lg
               "
-            >
-              {blog.description}
-            </p>
-          )}
+                >
+                  {blog.description}
+                </p>
+              )}
 
-        </header>
+            </header>
 
-        {/* ======================================
+            {/* ======================================
             FEATURED IMAGE
         ====================================== */}
-        
 
 
-        {featuredImageUrl && (
-          <div
-            className="
-      mx-auto
-      mt-10
-      overflow-hidden
-      rounded-2xl
-    "
-          >
-            <img
-              src={featuredImageUrl}
-              alt={
-                blog.title ||
-                "Blog image"
-              }
-              className="
-        max-h-[600px]
-        w-full
-        object-cover
-      "
-            />
-          </div>
-        )}
 
-        {/* ======================================
+            {featuredImageUrl && (
+              <div
+                className="
+                          mx-auto
+                          mt-10
+                          overflow-hidden
+                          rounded-2xl
+                        "
+              >
+                <img
+                  src={featuredImageUrl}
+                  alt={
+                    blog.title ||
+                    "Blog image"
+                  }
+                  className="
+                            max-h-[300px]
+                            w-full
+                            object-cover
+                          "
+                />
+              </div>
+            )}
+
+            {/* ======================================
             BLOG CONTENT
         ====================================== */}
 
-        <div
-          className="
-            mx-auto
-            mt-10
-            max-w-4xl
-          "
-        >
-          <div
-            className="
-              prose
-              prose-lg
-              max-w-none
-              prose-headings:font-bold
-              prose-headings:text-gray-900
-              prose-p:leading-8
-              prose-p:text-gray-700
-              prose-a:text-blue-600
-              prose-a:no-underline
-              prose-a:hover:underline
-              prose-img:rounded-xl
-              prose-strong:text-gray-900
-            "
-            dangerouslySetInnerHTML={{
-              __html:
-                blog.content || "",
-            }}
-          />
-        </div>
-
-        {/* ======================================
-            PREVIOUS / NEXT BLOG
-        ====================================== */}
-
-        {(previousBlog ||
-          nextBlog) && (
             <div
               className="
+                          mx-auto
+                          mt-10
+                          max-w-full
+                        "
+            >
+              <div
+                className="
+                          whitespace-pre-line
+                          text-justify
+                            prose
+                            prose-lg
+                            max-w-none
+                            prose-headings:font-bold
+                            prose-headings:text-gray-900
+                            prose-p:leading-8
+                            prose-p:text-gray-700
+                            prose-a:text-blue-600
+                            prose-a:no-underline
+                            prose-a:hover:underline
+                            prose-img:rounded-xl
+                            prose-strong:text-gray-900
+                          "
+                dangerouslySetInnerHTML={{
+                  __html:
+                    blog.content || "",
+                }}
+              />
+
+            </div>
+
+
+
+            {/* =====================================
+              YouTube Videos
+          ===================================== */}
+
+
+
+            {/* ======================================
+            FEEDBACK / COMMENTS
+        ====================================== */}
+
+            <section
+              className="
+                          mx-auto
+                          mt-14
+                          max-w-4xl        
+                          "
+            >
+
+              {/* ====================================
+              APPROVED COMMENTS
+          ==================================== */}
+
+              <FeedbackList
+                pageId={blog._id}
+              />
+
+              {/* ====================================
+              LEAVE A COMMENT
+          ==================================== */}
+
+              <FeedbackForm
+                pageId={blog._id}
+                pageTitle={blog.title}
+              />
+
+            </section>
+          </article>
+
+          {/* ======================================
+            PREVIOUS / NEXT BLOG
+        ====================================== */}
+          <div>
+            {(previousBlog ||
+              nextBlog) && (
+                <div
+                  className="
               mx-auto
               mt-14
               max-w-4xl
@@ -760,24 +808,24 @@ export default async function BlogDetailPage({
               border-b
               py-8
             "
-            >
-              <div
-                className="
+                >
+                  <div
+                    className="
                 grid
                 gap-6
                 sm:grid-cols-2
               "
-              >
+                  >
 
-                {/* ==================================
+                    {/* ==================================
                   PREVIOUS
               ================================== */}
 
-                <div>
-                  {previousBlog ? (
-                    <Link
-                      href={`/blog/${previousBlog.slug}`}
-                      className="
+                    <div>
+                      {previousBlog ? (
+                        <Link
+                          href={`/blog/${previousBlog.slug}`}
+                          className="
                       group
                       block
                       rounded-xl
@@ -789,19 +837,19 @@ export default async function BlogDetailPage({
                       hover:border-blue-300
                       hover:bg-blue-50
                     "
-                    >
-                      <p
-                        className="
+                        >
+                          <p
+                            className="
                         text-sm
                         font-semibold
                         text-gray-500
                       "
-                      >
-                        ← Previous Article
-                      </p>
+                          >
+                            ← Previous Article
+                          </p>
 
-                      <h3
-                        className="
+                          <h3
+                            className="
                         mt-2
                         line-clamp-2
                         font-bold
@@ -809,24 +857,24 @@ export default async function BlogDetailPage({
                         transition
                         group-hover:text-blue-600
                       "
-                      >
-                        {previousBlog.title}
-                      </h3>
-                    </Link>
-                  ) : (
-                    <div />
-                  )}
-                </div>
+                          >
+                            {previousBlog.title}
+                          </h3>
+                        </Link>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
 
-                {/* ==================================
+                    {/* ==================================
                   NEXT
               ================================== */}
 
-                <div>
-                  {nextBlog ? (
-                    <Link
-                      href={`/blog/${nextBlog.slug}`}
-                      className="
+                    <div>
+                      {nextBlog ? (
+                        <Link
+                          href={`/blog/${nextBlog.slug}`}
+                          className="
                       group
                       block
                       rounded-xl
@@ -840,19 +888,19 @@ export default async function BlogDetailPage({
                       hover:bg-blue-50
                       sm:text-right
                     "
-                    >
-                      <p
-                        className="
+                        >
+                          <p
+                            className="
                         text-sm
                         font-semibold
                         text-gray-500
                       "
-                      >
-                        Next Article →
-                      </p>
+                          >
+                            Next Article →
+                          </p>
 
-                      <h3
-                        className="
+                          <h3
+                            className="
                         mt-2
                         line-clamp-2
                         font-bold
@@ -860,246 +908,213 @@ export default async function BlogDetailPage({
                         transition
                         group-hover:text-blue-600
                       "
-                      >
-                        {nextBlog.title}
-                      </h3>
-                    </Link>
-                  ) : (
-                    <div />
-                  )}
+                          >
+                            {nextBlog.title}
+                          </h3>
+                        </Link>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+
+                  </div>
+                </div>
+              )}
+            {/* ======================================
+            Related  BLOG
+        ====================================== */}
+            {relatedBlogs.length > 0 && (
+              <section
+                className="
+                            mx-auto
+                            mt-14
+                            max-w-4xl
+                          "
+              >
+
+                <div className="mb-7">
+
+                  <h2
+                    className="
+                                text-2xl
+                                font-bold
+                                text-gray-900
+                                sm:text-3xl
+                              "
+                  >
+                    Related Articles
+                  </h2>
+
+                  <p
+                    className="
+                                  mt-2
+                                  text-gray-600
+                                "
+                  >
+                    Continue exploring our
+                    latest travel stories
+                    and guides.
+                  </p>
+
                 </div>
 
-              </div>
-            </div>
-          )}
+                <div
+                  className="
+                              grid
+                              gap-6
+                              sm:grid-cols-2
+                              lg:grid-cols-3
+                            "
+                >
 
-        {/* ======================================
-            RELATED BLOG POSTS
-        ====================================== */}
+                  {relatedBlogsWithImages.map(
+                    (relatedBlog) => (
+                      <article
+                        key={
+                          relatedBlog._id
+                        }
+                        className="
+                                    group
+                                    overflow-hidden
+                                    rounded-xl
+                                    border
+                                    border-gray-200
+                                    bg-white
+                                    transition
+                                    hover:-translate-y-1
+                                    hover:shadow-lg
+                                  "
+                      >
 
-        {relatedBlogs.length > 0 && (
-          <section
-            className="
-              mx-auto
-              mt-14
-              max-w-4xl
-            "
-          >
-
-            <div className="mb-7">
-
-              <h2
-                className="
-                  text-2xl
-                  font-bold
-                  text-gray-900
-                  sm:text-3xl
-                "
-              >
-                Related Articles
-              </h2>
-
-              <p
-                className="
-                  mt-2
-                  text-gray-600
-                "
-              >
-                Continue exploring our
-                latest travel stories
-                and guides.
-              </p>
-
-            </div>
-
-            <div
-              className="
-                grid
-                gap-6
-                sm:grid-cols-2
-                lg:grid-cols-3
-              "
-            >
-
-              {relatedBlogsWithImages.map(
-                (relatedBlog) => (
-                  <article
-                    key={
-                      relatedBlog._id
-                    }
-                    className="
-                      group
-                      overflow-hidden
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-white
-                      transition
-                      hover:-translate-y-1
-                      hover:shadow-lg
-                    "
-                  >
-
-                    {/* ==========================
+                        {/* ==========================
                         RELATED IMAGE
                     ========================== */}
 
-                    <Link
-                      href={`/blog/${relatedBlog.slug}`}
-                    >
-                      <div
-                        className="
-                          h-40
-                          overflow-hidden
-                          bg-gray-200
-                        "
-                      >
-
-                        {relatedBlog.resolvedImageUrl ? (
-                          <img
-                            src={
-                              relatedBlog.resolvedImageUrl
-                            }
-                            alt={
-                              relatedBlog.title ||
-                              "Related blog image"
-                            }
-                            className="
-      h-full
-      w-full
-      object-cover
-      transition
-      duration-500
-      group-hover:scale-105
-    "
-                          />
-                        ) : (
-                          <div
-                            className="
-                              flex
-                              h-full
-                              items-center
-                              justify-center
-                              text-sm
-                              text-gray-500
-                            "
-                          >
-                            No Image
-                          </div>
-                        )}
-
-                      </div>
-                    </Link>
-
-                    {/* ==========================
-                        RELATED CONTENT
-                    ========================== */}
-
-                    <div className="p-5">
-
-                      <h3
-                        className="
-                          line-clamp-2
-                          font-bold
-                          text-gray-900
-                          transition
-                          group-hover:text-blue-600
-                        "
-                      >
                         <Link
                           href={`/blog/${relatedBlog.slug}`}
                         >
-                          {relatedBlog.title}
+                          <div
+                            className="
+                                        h-40
+                                        overflow-hidden
+                                        bg-gray-200
+                                      "
+                          >
+
+                            {relatedBlog.resolvedImageUrl ? (
+                              <img
+                                src={
+                                  relatedBlog.resolvedImageUrl
+                                }
+                                alt={
+                                  relatedBlog.title ||
+                                  "Related blog image"
+                                }
+                                className="
+                                            h-full
+                                            w-full
+                                            object-cover
+                                            transition
+                                            duration-500
+                                            group-hover:scale-105
+                                          "/>
+                            ) : (
+                              <div
+                                className="
+                                              flex
+                                              h-full
+                                              items-center
+                                              justify-center
+                                              text-sm
+                                              text-gray-500
+                                            "
+                              >
+                                No Image
+                              </div>
+                            )}
+
+                          </div>
                         </Link>
-                      </h3>
 
-                      {relatedBlog.description && (
-                        <p
-                          className="
-                            mt-2
-                            line-clamp-3
-                            text-sm
-                            leading-6
-                            text-gray-600
-                          "
-                        >
-                          {
-                            relatedBlog.description
-                          }
-                        </p>
-                      )}
+                        {/* ==========================
+                        RELATED CONTENT
+                    ========================== */}
 
-                      <Link
-                        href={`/blog/${relatedBlog.slug}`}
-                        className="
-                          mt-4
-                          inline-flex
-                          font-semibold
-                          text-blue-600
-                          hover:text-blue-800
-                        "
-                      >
-                        Read More →
-                      </Link>
+                        <div className="p-5">
 
-                    </div>
+                          <h3
+                            className="
+                                        line-clamp-2
+                                        font-bold
+                                        text-gray-900
+                                        transition
+                                        group-hover:text-blue-600
+                                      "
+                          >
+                            <Link
+                              href={`/blog/${relatedBlog.slug}`}
+                            >
+                              {relatedBlog.title}
+                            </Link>
+                          </h3>
 
-                  </article>
-                )
-              )}
+                          {relatedBlog.description && (
+                            <p
+                              className="
+                                          whitespace-pre-line
+                                            mt-2
+                                            line-clamp-3
+                                            text-sm
+                                            leading-6
+                                            text-gray-600
+                                          "
+                            >
+                              {
+                                relatedBlog.description
+                              }
+                            </p>
+                          )}
 
-            </div>
+                          <Link
+                            href={`/blog/${relatedBlog.slug}`}
+                            className="
+                                        mt-4
+                                        inline-flex
+                                        font-semibold
+                                        text-blue-600
+                                        hover:text-blue-800
+                                      "
+                          >
+                            Read More →
+                          </Link>
 
-          </section>
-        )}
+                        </div>
 
-        {/* ======================================
-            FEEDBACK / COMMENTS
-        ====================================== */}
+                      </article>
+                    )
+                  )}
 
-        <section
-          className="
-            mx-auto
-            mt-14
-            max-w-4xl
-          "
-        >
+                </div>
 
-          {/* ====================================
-              APPROVED COMMENTS
-          ==================================== */}
+              </section>
+            )}
 
-          <FeedbackList
-            pageId={blog._id}
-          />
-
-          {/* ====================================
-              LEAVE A COMMENT
-          ==================================== */}
-
-          <FeedbackForm
-            pageId={blog._id}
-            pageTitle={blog.title}
-          />
-
-        </section>
-
-        {/* ======================================
+            {/* ======================================
             BACK TO BLOG
         ====================================== */}
 
-        <div
-          className="
+            <div
+              className="
             mx-auto
             mt-12
             max-w-4xl
             border-t
             pt-8
           "
-        >
-          <Link
-            href="/blog"
-            className="
+            >
+              <Link
+                href="/blog"
+                className="
               inline-flex
               items-center
               rounded-lg
@@ -1111,16 +1126,17 @@ export default async function BlogDetailPage({
               transition
               hover:bg-blue-700
             "
-          >
-            <span className="mr-2">
-              ←
-            </span>
+              >
+                <span className="mr-2">
+                  ←
+                </span>
 
-            Back to Blog
-          </Link>
+                Back to Blog
+              </Link>
+            </div>
+          </div>
         </div>
-
-      </article>
+      </section>
 
     </main>
   );

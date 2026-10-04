@@ -5,6 +5,7 @@ import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
 import Region from "@/models/Region";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 /*
@@ -105,6 +106,61 @@ export default async function RegionTreksPage({ params }) {
     .lean();
 
 
+    /*
+====================================================
+CREATE SIGNED URLS FOR S3 TREK IMAGES
+====================================================
+*/
+
+const treksWithSignedImages =
+await Promise.all(
+
+  treks.map(async (trek) => {
+
+    const primaryImage =
+      Array.isArray(trek.images) &&
+      trek.images.length > 0
+        ? trek.images[0]
+        : null;
+
+
+    /*
+    ----------------------------------------------
+    S3 IMAGE
+    ----------------------------------------------
+    */
+
+    if (
+      primaryImage?.storage === "s3" &&
+      primaryImage?.key
+    ) {
+
+      const signedUrl =
+        await getS3SignedUrl(
+          primaryImage.key,
+          3600
+        );
+
+      return {
+        ...trek,
+        imageUrl: signedUrl,
+      };
+
+    }
+
+
+    /*
+    ----------------------------------------------
+    CLOUDINARY / MANUAL URL
+    ----------------------------------------------
+    */
+
+    return trek;
+
+  })
+
+);
+
   /*
   ==================================================
   PAGE TITLE
@@ -130,7 +186,7 @@ export default async function RegionTreksPage({ params }) {
 
       <section className="bg-gray-900 px-6 py-20 text-white">
 
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-full">
 
           <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-gray-300">
             Trekking Region
@@ -159,7 +215,7 @@ export default async function RegionTreksPage({ params }) {
 
       <section className="px-6 py-16">
 
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-full">
 
           {/* ==========================================
               BREADCRUMB
@@ -216,9 +272,9 @@ export default async function RegionTreksPage({ params }) {
                TREK GRID
             ======================================== */
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
 
-              {treks.map((trek) => (
+              {treksWithSignedImages.map((trek) => (
 
                 <article
                   key={trek._id.toString()}

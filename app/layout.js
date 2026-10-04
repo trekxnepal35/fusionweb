@@ -3,6 +3,14 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import { getMenus } from "@/lib/getMenus";
 import Link from "next/link";
+import {
+  FaYoutube,
+  FaWhatsapp,
+  FaViber,
+  FaTripadvisor,
+  FaFacebookF,
+  FaInstagram,
+} from "react-icons/fa";
 
 
 /*
@@ -311,22 +319,80 @@ export default async function RootLayout({
 
                 </ul>
 
-                <div className="mt-7 flex gap-3">
+                <div className="flex items-center gap-4">
 
-                  <SocialLink
-                    label="f"
-                    href="#"
-                  />
+                  {/* Facebook */}
+                  <Link
+                    href="https://www.facebook.com/FusionExpeditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-bold uppercase transition hover:bg-emerald-500"
+                    // className="text-blue-600 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaFacebookF />
+                    </span>
+                  </Link>
 
-                  <SocialLink
-                    label="ig"
-                    href="#"
-                  />
+                  {/* Instagram */}
+                  <Link
+                    href="https://www.instagram.com/fusionexpeditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pink-600 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaInstagram />
+                    </span>
+                  </Link>
 
-                  <SocialLink
-                    label="in"
-                    href="#"
-                  />
+                  {/* YouTube */}
+                  <Link
+                    href="https://www.youtube.com/@FusionExpeditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-red-600 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaYoutube />
+                    </span>
+                  </Link>
+
+                  {/* WhatsApp */}
+                  <Link
+                    href="https://api.whatsapp.com/send?phone=9851432432"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-500 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaWhatsapp />
+                    </span>
+                  </Link>
+
+                  {/* Viber */}
+                  <Link
+                    href="viberp://chat/?number=9851432432"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-600 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaViber />
+                    </span>
+                  </Link>
+
+                  {/* TripAdvisor */}
+                  <Link
+                    href="https://www.tripadvisor.com/Attraction_Review-g293890-d26247521-Reviews-Fusion_Expeditions-Kathmandu_Kathmandu_Valley_Bagmati_Zone_Central_Region.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-500 text-2xl hover:scale-110 transition-transform"
+                  >
+                    <span>
+                      <FaTripadvisor />
+                    </span>
+                  </Link>
 
                 </div>
 
@@ -424,6 +490,7 @@ SOCIAL LINK
 function SocialLink({
   label,
   href,
+  target,
 }) {
 
   return (
@@ -431,10 +498,12 @@ function SocialLink({
     <a
       href={href}
       aria-label={label}
+      target={target}
       className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs font-bold uppercase transition hover:bg-emerald-500"
     >
 
       {label}
+
 
     </a>
 

@@ -488,7 +488,7 @@ export default async function BlogPage({
 
       <section className="bg-gray-900 px-4 py-20 text-white">
 
-        <div className="mx-auto max-w-7xl text-center">
+        <div className="mx-auto max-w-full text-center">
 
           <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-blue-400">
 
@@ -497,14 +497,14 @@ export default async function BlogPage({
           </p>
 
 
-          <h1 className="text-4xl font-bold sm:text-5xl">
+          <h1 className="text-2xl font-bold sm:text-5xl">
 
             Our Blog
 
           </h1>
 
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-300 sm:text-lg">
+          <p className=" mt-5  text-base leading-7 text-gray-300 sm:text-lg">
 
             Discover travel stories, trekking guides,
             destination information, tips, and
@@ -523,7 +523,7 @@ export default async function BlogPage({
 
       <section className="px-4 py-12 sm:py-16">
 
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-full">
 
 
           {blogs.length === 0 ? (
@@ -656,6 +656,7 @@ export default async function BlogPage({
                       {blog.description && (
 
                         <p className="
+                        whitespace-pre-line
                           mt-3
                           line-clamp-3
                           text-sm

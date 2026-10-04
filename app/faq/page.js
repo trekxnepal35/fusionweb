@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 async function getFaqsPage() {
@@ -81,7 +82,7 @@ export default async function FaqsPage() {
                                     className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
                                 >
 
-                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+                                    <summary className="whitespace-pre-line flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
 
                                         <span>
                                             {faq.question}
@@ -97,7 +98,7 @@ export default async function FaqsPage() {
 
                                         <div className="mt-4 border-t border-gray-100 pt-4">
 
-                                            <p className="leading-7 text-gray-600">
+                                            <p className="whitespace-pre-line leading-7 text-gray-600">
                                                 {faq.answer}
                                             </p>
 

@@ -1212,7 +1212,7 @@ export default function SearchPageClient() {
           MAIN CONTENT
       ======================================== */}
 
-      <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
+      <section className="mx-auto max-w-full px-5 py-8 sm:px-8 lg:px-10">
 
         <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
 
@@ -1221,7 +1221,7 @@ export default function SearchPageClient() {
               FILTER SIDEBAR
           ======================================== */}
 
-          <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          < aside className="h-fit rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
 
             <div className="mb-6 flex items-center justify-between">
 
@@ -1693,7 +1693,7 @@ export default function SearchPageClient() {
               !error &&
               pages.length > 0 && (
 
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
 
                   {pages.map(
                     (item) => {

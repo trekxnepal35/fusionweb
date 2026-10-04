@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 
+
 /*
 
 # HOMEPAGE
@@ -31,6 +32,11 @@ export default function HomePage() {
   ] = useState([]);
 
   const [
+    faqPage,
+    setFaqPage,
+  ] = useState(null);
+
+  const [
     loading,
     setLoading,
   ] = useState(true);
@@ -39,6 +45,8 @@ export default function HomePage() {
     error,
     setError,
   ] = useState("");
+
+
 
   /*
   
@@ -142,6 +150,35 @@ export default function HomePage() {
 
           setRegions(
             regionResult.data || []
+          );
+
+        }
+
+        /*
+======================================
+FETCH FAQS
+======================================
+*/
+
+        const faqResponse =
+          await fetch(
+            "/api/faq",
+            {
+              cache: "no-store",
+            }
+          );
+
+
+        const faqResult =
+          await faqResponse.json();
+
+
+        if (
+          faqResult.success
+        ) {
+
+          setFaqPage(
+            faqResult.data || null
           );
 
         }
@@ -282,6 +319,8 @@ export default function HomePage() {
 
 
   }
+
+
 
   /*
   
@@ -490,34 +529,35 @@ export default function HomePage() {
 
         {/* Bottom statistics */}
 
-        <div className="relative mx-auto -mt-20 max-w-7xl px-6 lg:px-8">
+        <div className="relative mx-auto -mt-20 max-w-full px-6 lg:px-8">
 
           <div className="grid overflow-hidden rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl sm:grid-cols-3">
-
             <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
 
               <div className="text-3xl font-black">
-                8,848m
+                225+
               </div>
 
               <div className="mt-1 text-sm text-slate-300">
-                Highest Mountain
+                Happy Travellers
               </div>
 
             </div>
 
 
+
             <div className="border-b border-white/10 p-6 text-center text-white sm:border-b-0 sm:border-r">
 
               <div className="text-3xl font-black">
-                14+
+                10+
               </div>
 
               <div className="mt-1 text-sm text-slate-300">
-                Himalayan Peaks
+                Years Experience
               </div>
 
             </div>
+
 
 
             <div className="p-6 text-center text-white">
@@ -577,70 +617,6 @@ export default function HomePage() {
 
       )}
 
-
-      {/* =====================================
-      INTRO
-  ===================================== */}
-
-      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
-
-        <div className="mx-auto max-w-3xl text-center">
-
-          <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
-            Your Himalayan Journey
-          </span>
-
-
-          <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
-
-            Adventure starts here
-
-          </h2>
-
-
-          <p className="mt-6 text-lg leading-8 text-slate-600">
-
-            From iconic Himalayan trails to peaceful
-            cultural journeys, discover carefully designed
-            adventures that let you experience the real Nepal.
-
-          </p>
-
-        </div>
-
-
-        {/* Feature cards */}
-
-        <div className="mt-16 grid  gap-6 md:grid-cols-3">
-
-          <FeatureCard
-            icon="🏔️"
-            title="Himalayan Treks"
-            text="Walk among the world's highest mountains and experience unforgettable Himalayan landscapes."
-          />
-
-
-          <FeatureCard
-            icon="🌿"
-            title="Authentic Experiences"
-            text="Meet local communities, discover mountain culture and travel beyond ordinary tourist routes."
-          />
-
-
-          <FeatureCard
-            icon="🧭"
-            title="Expertly Planned"
-            text="Flexible itineraries, experienced guides and carefully selected routes for a memorable journey."
-          />
-
-        </div>
-
-      </section>
-
-
-
-
-
       {/* =====================================
       FEATURED TREKS
   ===================================== */}
@@ -649,7 +625,7 @@ export default function HomePage() {
 
         <section className="bg-slate-50 py-24">
 
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-full px-6 lg:px-8">
 
             <SectionHeading
               eyebrow="Himalayan Adventures"
@@ -663,7 +639,7 @@ export default function HomePage() {
             <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
 
               {treks
-                .slice(0, 6)
+                .slice(0, 3)
                 .map(
                   (trek) => (
 
@@ -691,6 +667,64 @@ export default function HomePage() {
 
       )}
 
+ {/* =====================================
+      INTRO
+  ===================================== */}
+
+<section className="mx-auto max-w-full px-6 py-24 lg:px-8">
+
+<div className="mx-auto  max-w-full text-center">
+
+  <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
+    Your Himalayan Journey
+  </span>
+
+
+  <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+
+    Adventure starts here
+
+  </h2>
+
+
+  <p className="mt-6 text-lg leading-8 text-slate-600">
+
+    From iconic Himalayan trails to peaceful
+    cultural journeys, discover carefully designed
+    adventures that let you experience the real Nepal.
+
+  </p>
+
+</div>
+
+
+{/* Feature cards */}
+
+<div className="mt-16 grid  gap-6 md:grid-cols-3">
+
+  <FeatureCard
+    icon="🏔️"
+    title="Himalayan Treks"
+    text="Walk among the world's highest mountains and experience unforgettable Himalayan landscapes."
+  />
+
+
+  <FeatureCard
+    icon="🌿"
+    title="Authentic Experiences"
+    text="Meet local communities, discover mountain culture and travel beyond ordinary tourist routes."
+  />
+
+
+  <FeatureCard
+    icon="🧭"
+    title="Expertly Planned"
+    text="Flexible itineraries, experienced guides and carefully selected routes for a memorable journey."
+  />
+
+</div>
+
+</section>
 
       {/* =====================================
       REGIONS
@@ -698,7 +732,7 @@ export default function HomePage() {
 
       {regions.length > 0 && (
 
-        <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+        <section className="mx-auto max-w-full px-6 py-24 lg:px-8">
 
           <SectionHeading
             eyebrow="Explore Nepal"
@@ -710,7 +744,7 @@ export default function HomePage() {
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
             {regions
-              .slice(0, 6)
+              .slice(0, 3)
               .map(
                 (region) => (
 
@@ -791,7 +825,7 @@ export default function HomePage() {
 
         <section className="bg-slate-950 py-24">
 
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-full px-6 lg:px-8">
 
             <SectionHeading
               eyebrow="Beyond Trekking"
@@ -840,7 +874,7 @@ export default function HomePage() {
       WHY US
   ===================================== */}
 
-      <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
+      <section className="mx-auto max-w-full px-6 py-24 lg:px-8">
 
         <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
 
@@ -893,27 +927,106 @@ export default function HomePage() {
 
           <div className="relative">
 
-            <div className="aspect-[4/5] overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-500 to-slate-900 p-1 shadow-2xl">
+            <div className=" overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-500 to-slate-900 p-1 shadow-2xl">
 
-              <div className="flex h-full items-end rounded-[1.7rem] bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent p-8">
+              
 
-                <div className="text-white">
+                {/* ========================================
+                    FAQ SECTION
+                ======================================== */}
 
-                  <div className="text-5xl">
-                    🏔️
-                  </div>
+                {faqPage?.faqs?.length > 0 && (
 
-                  <h3 className="mt-5 text-3xl font-black">
-                    The Himalayas are calling.
-                  </h3>
+                  <section 
+                  className="flex h-full   rounded-[1.7rem] bg-gradient-to-t from-slate-950 via-slate-900/30 to-transparent p-24"
+                  // className="bg-gradient-to-br from-slate-50 via-white to-emerald-50 px-4 py-16 sm:px-6 lg:px-8"
+                  >
 
-                  <p className="mt-3 text-slate-300">
-                    Your next adventure starts in Nepal.
-                  </p>
+                    <div className="mx-auto max-w-5xl ">
 
-                </div>
+                      {/* FAQ HEADER */}
 
-              </div>
+                      <div className="mb-10 text-center">
+
+                        <h2 className="text-5xl  font-bold tracking-tight text-slate-900 sm:text-4xl">
+                          Frequently Asked Questions
+                        </h2>
+
+                        {/* <div className="mx-auto mt-4 h-1 w-32 rounded-full bg-emerald-600" /> */}
+
+                      </div>
+
+
+                      {/* FAQ ITEMS */}
+
+                      <div className="space-y-4">
+
+                        {faqPage.faqs
+                          .slice(0, 10)
+                          .map((faq, index) => (
+
+                            <details
+                              key={index}
+                              className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                            >
+
+                              <summary className="whitespace-pre-line flex cursor-pointer list-none items-center justify-between gap-6 font-semibold text-gray-900">
+
+                                <span>
+                                  {faq.question}
+                                </span>
+
+                                <span className="text-2xl text-emerald-600 transition-transform duration-300 group-open:rotate-45">
+                                  +
+                                </span>
+
+                              </summary>
+
+
+                              {faq.answer && (
+
+                                <div className="mt-4 border-t border-gray-100 pt-4">
+
+                                  <p className="whitespace-pre-line leading-7 text-gray-600">
+                                    {faq.answer}
+                                  </p>
+
+                                </div>
+
+                              )}
+
+                            </details>
+
+                          ))}
+
+                      </div>
+
+
+                      {/* VIEW ALL */}
+
+                      {faqPage?.faqs?.length > 10 && (
+
+                        <div className="mt-8 text-center">
+
+                          <Link
+                          target="_blank"
+                            href="/faq"
+                            className="inline-flex items-center rounded-lg bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700"
+                          >
+                            View More FAQs
+                          </Link>
+
+                        </div>
+
+                      )}
+
+                    </div>
+
+                  </section>
+
+                )}
+
+             
 
             </div>
 
@@ -930,7 +1043,7 @@ export default function HomePage() {
 
       <section className="px-6 pb-24 lg:px-8">
 
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-emerald-600 px-8 py-16 text-center shadow-xl sm:px-16">
+        <div className="mx-auto max-w-full overflow-hidden rounded-[2rem] bg-emerald-600 px-8 py-16 text-center shadow-xl sm:px-16">
 
           <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-100">
             Start Your Adventure
@@ -1121,7 +1234,7 @@ function PopularExperiences({
   return (
 
 
-    <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+    <section className="mx-auto max-w-full px-6 py-20 lg:px-8">
 
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
 
@@ -1144,11 +1257,9 @@ function PopularExperiences({
           </h2>
 
 
-          <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
+          <p className="text-justify mt-6 max-w-full text-lg leading-8 text-slate-600">
 
-            Explore some of our most popular Himalayan
-            treks and Nepal tours, carefully selected from
-            our published experiences.
+          Explore some of our most popular Himalayan treks and Nepal tours, carefully selected from our published experiences. Discover unforgettable trekking adventures in the Himalayas, scenic mountain trails, authentic cultural experiences, and immersive Nepal tours designed for every kind of traveler. From iconic trekking routes to hidden valleys and local heritage, our carefully crafted journeys help you experience the very best of Nepal. Start planning your next Himalayan adventure and discover why Nepal remains one of the world’s most inspiring travel destinations.
 
           </p>
 
@@ -1209,7 +1320,7 @@ function PopularExperiences({
               className="group block"
             >
 
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-200">
+              <div className="relative aspect-[10/5] overflow-hidden bg-slate-200">
 
                 {current.cardImageUrl ? (
 

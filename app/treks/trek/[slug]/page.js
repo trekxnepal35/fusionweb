@@ -450,7 +450,7 @@ export default async function TrekDetailPage({
             MAIN CONTENT
         ===================================== */}
 
-        <section className="mx-auto max-w-7xl px-6 py-12">
+        <section className="mx-auto max-w-full px-6 py-12">
 
           <div className="grid gap-10 lg:grid-cols-3">
 
@@ -937,7 +937,7 @@ export default async function TrekDetailPage({
           {Array.isArray(trek.faqs) &&
             trek.faqs.length > 0 && (
 
-              <section id="map-faq" className="mx-auto mt-16 max-w-7xl px-6">
+              <section id="map-faq" className="mx-auto mt-16 max-w-full px-6">
                 <SectionCollapse title="Map and FAQ">
                   <hr />
                 <div className="grid gap-10 lg:grid-cols-3">
@@ -953,7 +953,7 @@ export default async function TrekDetailPage({
                         <img
                           src={trek.faqImageUrl}
                           alt={`${trek.title} FAQ`}
-                          className="h-[420px] w-full object-cover"
+                          className="h-[520px] w-full object-cover"
                         />
 
                       </div>

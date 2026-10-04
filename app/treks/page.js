@@ -233,7 +233,7 @@ export default async function TreksPage() {
 
       <section className="px-6 py-16">
 
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-full">
 
           <div className="mb-10">
 
@@ -272,7 +272,7 @@ export default async function TreksPage() {
                TREK GRID
             ======================================== */
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
 
               {treks.map((trek) => (
 

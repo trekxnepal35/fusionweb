@@ -445,7 +445,7 @@ export default async function TourDetailPage({
             CONTENT
         ===================================== */}
 
-        <section className="mx-auto max-w-7xl px-6 py-12">
+        <section className="mx-auto max-w-full px-6 py-12">
 
           <div className="grid gap-10 lg:grid-cols-3">
 
@@ -909,7 +909,7 @@ export default async function TourDetailPage({
           {Array.isArray(tour.faqs) &&
             tour.faqs.length > 0 && (
 
-              <section id="map-faq" className="mx-auto mt-16 max-w-7xl px-6">
+              <section id="map-faq" className="mx-auto mt-16 max-w-full px-6">
                 <SectionCollapse title="Map-FAQ">
                   <hr />
                   <div className="grid gap-10 lg:grid-cols-3">

@@ -1,4 +1,4 @@
-import { base64url } from "jose";
+// import { base64url } from "jose";
 import Link from "next/link";
 
 async function getTermsPage() {
@@ -53,7 +53,7 @@ export default async function TermsPage() {
                     >
                         <div className="flex items-start gap-4">
 
-                            <div className="min-w-0 flex-1">
+                            <div className="whitespace-pre-line text-justify min-w-0 flex-1">
                             Welcome to <span className="font-bold">Fusion Expeditions Pvt Ltd.</span> 
                                 {page.description}
                                 <div className="mt-5 text-base leading-8 text-slate-600">
@@ -82,11 +82,11 @@ export default async function TermsPage() {
 
                                 <div className="min-w-0 flex-1">
 
-                                    <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
+                                    <h2 className="text-justify text-xl font-bold text-slate-900 sm:text-2xl">
                                         {item.question}
                                     </h2>
 
-                                    <div className="mt-5 text-base leading-8 text-slate-600">
+                                    <div className="whitespace-pre-line text-justify mt-5 text-base leading-8 text-slate-600">
                                         {item.answer}
                                     </div>
                                     <br />

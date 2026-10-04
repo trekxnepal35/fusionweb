@@ -6,6 +6,7 @@ import Page from "@/models/Page";
 import PageType from "@/models/PageType";
 import Region from "@/models/Region";
 import { verifyAdminToken } from "@/lib/auth";
+import { getS3SignedUrl } from "@/lib/s3";
 
 
 function getAdminFromRequest(request) {
@@ -922,6 +923,60 @@ export async function GET(request) {
 
 
     /*
+====================================================
+CREATE SIGNED URLS FOR S3 SEARCH IMAGES
+====================================================
+*/
+
+    const pagesWithSignedImages =
+      await Promise.all(
+
+        pages.map(async (page) => {
+
+          const primaryImage =
+            Array.isArray(page.images) &&
+              page.images.length > 0
+              ? page.images[0]
+              : null;
+
+
+          /*
+          ----------------------------------------------
+          S3 IMAGE
+          ----------------------------------------------
+          */
+
+          if (
+            primaryImage?.storage === "s3" &&
+            primaryImage?.key
+          ) {
+
+            const signedUrl =
+              await getS3SignedUrl(
+                primaryImage.key,
+                3600
+              );
+
+            return {
+              ...page,
+              imageUrl: signedUrl,
+            };
+
+          }
+
+
+          /*
+          ----------------------------------------------
+          CLOUDINARY / MANUAL IMAGE
+          ----------------------------------------------
+          */
+
+          return page;
+
+        })
+
+      );
+    /*
     ========================================
     PAGINATION INFORMATION
     ========================================
@@ -945,7 +1000,7 @@ export async function GET(request) {
 
       success: true,
 
-      data: pages,
+      data: pagesWithSignedImages,
 
       pagination: {
 
