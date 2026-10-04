@@ -409,8 +409,7 @@ export default async function AboutPage() {
         </h2>
 
         <p className="mx-auto mt-5 max-w-full text-lg leading-8 text-gray-300">
-          Explore our trekking, tour, climbing, and adventure experiences
-          and start planning your journey.
+          Explore our trekking, tour, climbing, and adventure experiences  and start planning your journey.
         </p>
 
 
