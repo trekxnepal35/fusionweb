@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { FaTripadvisor } from "react-icons/fa";
 
 
 /*
@@ -483,9 +484,9 @@ FETCH FAQS
             </div>
 
 
-            <h1 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl">
+            <h1 className="text-3xl font-black tracking-tight sm:text-6xl lg:text-7xl">
 
-              Discover Nepal
+            Discover the Himalayas
 
               <span className="block text-emerald-300">
                 Beyond the Ordinary
@@ -1036,6 +1037,99 @@ FETCH FAQS
 
       </section>
 
+         {/* =====================================
+      Associate
+  ===================================== */}
+
+<section className="px-6 pb-24 lg:px-8">
+
+<div className="mx-auto max-w-full overflow-hidden rounded-[2rem] px-8 py-16 text-center shadow-xl sm:px-16">
+
+
+
+  <h3 className="mx-auto mt-24 text-4xl   font-black tracking-tight text-slate-900 ">
+
+  We are Associated with
+
+  </h3>
+
+
+  <div className="mt-10 flex  justify-between ">
+  <Link
+        href="/"       
+        className="
+          flex
+          items-center
+          shrink-0          
+          lg:mr-10
+        "
+      >
+        <img
+          src="/nma.png"
+          alt="nma Logo"
+          className="
+          w-56 object-cover
+          "
+        />
+      </Link>
+  <Link
+        href="/"       
+        className="
+          flex
+          items-center
+          shrink-0       
+          lg:mr-10
+        "
+      >
+        <img
+          src="/ntb.png"
+          alt="ntb Logo"
+          className="
+        w-16 object-cover
+          "
+        />
+      </Link>
+  <Link
+        href="/"       
+        className="
+          flex
+          items-center
+          shrink-0       
+          lg:mr-10
+        "
+      >
+        <img
+          src="/taan.png"
+          alt="taan Logo"
+          className="
+           w-56 object-cover
+          "
+        />
+      </Link>
+  
+    
+    {/* TripAdvisor */}
+    <Link
+                    href="https://www.tripadvisor.com/Attraction_Review-g293890-d26247521-Reviews-Fusion_Expeditions-Kathmandu_Kathmandu_Valley_Bagmati_Zone_Central_Region.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    // className="text-emerald-500 text-2xl hover:scale-110 transition-transform"
+                    className=" bg-white font-bold text-emerald-700 transition hover:-translate-y-1 hover:bg-slate-100"
+                  >
+                    <span className="text-5xl">
+                      <FaTripadvisor />
+                     
+                    </span>
+                  </Link>
+ 
+
+
+  </div>
+
+</div>
+
+</section>
+
 
       {/* =====================================
       CTA
@@ -1237,10 +1331,293 @@ function PopularExperiences({
     <section className="mx-auto max-w-full px-6 py-20 lg:px-8">
 
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+ {/* ==================================
+       LEFT SIDE
+    ================================== */}
 
+<div className="relative">
+
+<div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
+
+
+  {/* Main image */}
+
+  <Link
+    href={detailHref}
+    className="group block"
+  >
+
+    <div className="relative aspect-[10/5] overflow-hidden bg-slate-200">
+
+      {current.cardImageUrl ? (
+
+        <img
+          key={
+            current._id
+          }
+          src={
+            current.cardImageUrl
+          }
+          alt={
+            current.title
+          }
+          className="h-full w-full object-cover transition duration-1000 group-hover:scale-105"
+        />
+
+      ) : (
+
+        <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-600 to-slate-900 text-7xl">
+
+          🏔️
+
+        </div>
+
+      )}
+
+
+      {/* Overlay */}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+
+
+      {/* Type */}
+
+      <div className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-900 backdrop-blur">
+
+        {current.experienceType}
+
+      </div>
+
+
+      {/* Image counter */}
+
+      <div className="absolute right-5 top-5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+
+        {currentIndex + 1} / {experiences.length}
+
+      </div>
+
+
+      {/* Image title */}
+
+      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+
+        <h3 className="text-2xl font-black sm:text-3xl">
+
+          {current.title}
+
+        </h3>
+
+
+        {current.region?.name && (
+
+          <p className="mt-2 text-sm font-semibold text-emerald-300">
+
+            📍 {current.region.name}
+
+          </p>
+
+        )}
+
+      </div>
+
+    </div>
+
+  </Link>
+
+
+  {/* Content */}
+
+  <div className="p-6">
+
+
+    <p className="line-clamp-2 leading-7 text-slate-600">
+
+      {current.description ||
+        "Discover an unforgettable Nepal adventure."}
+
+    </p>
+
+
+    <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
+
+
+      {/* Price */}
+
+      {price ? (
+
+        <div>
+
+          <span className="text-xs text-slate-500">
+
+            {price.label ||
+              "Price"}
+
+          </span>
+
+
+          <div className="text-2xl font-black text-slate-900">
+
+            {price.currency}{" "}
+
+            {price.amount.toLocaleString()}
+
+            <span className="ml-1 text-sm font-medium text-slate-400">
+
+              / person
+
+            </span>
+
+          </div>
+
+        </div>
+
+      ) : (
+
+        <div className="text-sm font-semibold text-slate-500">
+
+          Contact us for pricing
+
+        </div>
+
+      )}
+
+
+      <Link
+        href={detailHref}
+        className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600"
+      >
+        View Details
+      </Link>
+
+    </div>
+
+
+    {/* Controls */}
+
+    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
+
+
+      <button
+        type="button"
+        onClick={
+          previousExperience
+        }
+        aria-label="Previous popular experience"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
+      >
+        ←
+      </button>
+
+
+      <button
+        type="button"
+        onClick={() =>
+          setIsPlaying(
+            (playing) =>
+              !playing
+          )
+        }
+        className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
+      >
+        {isPlaying
+          ? "❚❚ Pause"
+          : "▶ Play"}
+      </button>
+
+
+      <button
+        type="button"
+        onClick={
+          nextExperience
+        }
+        aria-label="Next popular experience"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
+      >
+        →
+      </button>
+
+    </div>
+
+
+    {/* Dots */}
+
+    <div className="mt-5 flex justify-center gap-2">
+
+      {experiences.map(
+        (
+          experience,
+          index
+        ) => (
+
+          <button
+            key={
+              experience._id
+            }
+            type="button"
+            onClick={() => {
+
+              setCurrentIndex(
+                index
+              );
+
+            }}
+            aria-label={`Show popular experience ${index + 1}`}
+            className={`h-2.5 rounded-full transition-all ${index === currentIndex
+              ? "w-8 bg-emerald-500"
+              : "w-2.5 bg-slate-300 hover:bg-slate-400"
+              }`}
+          />
+
+        )
+      )}
+
+    </div>
+
+  </div>
+
+</div>
+
+
+{/* Small numbered list */}
+
+<div className="mt-4 grid grid-cols-5 gap-2">
+
+  {experiences.map(
+    (
+      experience,
+      index
+    ) => (
+
+      <button
+        key={
+          experience._id
+        }
+        type="button"
+        onClick={() => {
+
+          setCurrentIndex(
+            index
+          );
+
+        }}
+        className={`rounded-xl px-2 py-2 text-center text-xs font-bold transition ${index === currentIndex
+          ? "bg-emerald-600 text-white shadow-md"
+          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+      >
+        {index + 1}
+      </button>
+
+    )
+  )}
+
+</div>
+
+</div>
 
         {/* ==================================
-        LEFT SIDE
+        RIGHT SIDE
     ================================== */}
 
         <div>
@@ -1304,290 +1681,7 @@ function PopularExperiences({
         </div>
 
 
-        {/* ==================================
-        RIGHT SIDE
-    ================================== */}
-
-        <div className="relative">
-
-          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
-
-
-            {/* Main image */}
-
-            <Link
-              href={detailHref}
-              className="group block"
-            >
-
-              <div className="relative aspect-[10/5] overflow-hidden bg-slate-200">
-
-                {current.cardImageUrl ? (
-
-                  <img
-                    key={
-                      current._id
-                    }
-                    src={
-                      current.cardImageUrl
-                    }
-                    alt={
-                      current.title
-                    }
-                    className="h-full w-full object-cover transition duration-1000 group-hover:scale-105"
-                  />
-
-                ) : (
-
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-600 to-slate-900 text-7xl">
-
-                    🏔️
-
-                  </div>
-
-                )}
-
-
-                {/* Overlay */}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-
-
-                {/* Type */}
-
-                <div className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-900 backdrop-blur">
-
-                  {current.experienceType}
-
-                </div>
-
-
-                {/* Image counter */}
-
-                <div className="absolute right-5 top-5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
-
-                  {currentIndex + 1} / {experiences.length}
-
-                </div>
-
-
-                {/* Image title */}
-
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-
-                  <h3 className="text-2xl font-black sm:text-3xl">
-
-                    {current.title}
-
-                  </h3>
-
-
-                  {current.region?.name && (
-
-                    <p className="mt-2 text-sm font-semibold text-emerald-300">
-
-                      📍 {current.region.name}
-
-                    </p>
-
-                  )}
-
-                </div>
-
-              </div>
-
-            </Link>
-
-
-            {/* Content */}
-
-            <div className="p-6">
-
-
-              <p className="line-clamp-2 leading-7 text-slate-600">
-
-                {current.description ||
-                  "Discover an unforgettable Nepal adventure."}
-
-              </p>
-
-
-              <div className="mt-5 flex flex-wrap items-end justify-between gap-4">
-
-
-                {/* Price */}
-
-                {price ? (
-
-                  <div>
-
-                    <span className="text-xs text-slate-500">
-
-                      {price.label ||
-                        "Price"}
-
-                    </span>
-
-
-                    <div className="text-2xl font-black text-slate-900">
-
-                      {price.currency}{" "}
-
-                      {price.amount.toLocaleString()}
-
-                      <span className="ml-1 text-sm font-medium text-slate-400">
-
-                        / person
-
-                      </span>
-
-                    </div>
-
-                  </div>
-
-                ) : (
-
-                  <div className="text-sm font-semibold text-slate-500">
-
-                    Contact us for pricing
-
-                  </div>
-
-                )}
-
-
-                <Link
-                  href={detailHref}
-                  className="rounded-full bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-600"
-                >
-                  View Details
-                </Link>
-
-              </div>
-
-
-              {/* Controls */}
-
-              <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
-
-
-                <button
-                  type="button"
-                  onClick={
-                    previousExperience
-                  }
-                  aria-label="Previous popular experience"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
-                >
-                  ←
-                </button>
-
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setIsPlaying(
-                      (playing) =>
-                        !playing
-                    )
-                  }
-                  className="rounded-full border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
-                >
-                  {isPlaying
-                    ? "❚❚ Pause"
-                    : "▶ Play"}
-                </button>
-
-
-                <button
-                  type="button"
-                  onClick={
-                    nextExperience
-                  }
-                  aria-label="Next popular experience"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-lg font-bold text-slate-700 transition hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-600"
-                >
-                  →
-                </button>
-
-              </div>
-
-
-              {/* Dots */}
-
-              <div className="mt-5 flex justify-center gap-2">
-
-                {experiences.map(
-                  (
-                    experience,
-                    index
-                  ) => (
-
-                    <button
-                      key={
-                        experience._id
-                      }
-                      type="button"
-                      onClick={() => {
-
-                        setCurrentIndex(
-                          index
-                        );
-
-                      }}
-                      aria-label={`Show popular experience ${index + 1}`}
-                      className={`h-2.5 rounded-full transition-all ${index === currentIndex
-                        ? "w-8 bg-emerald-500"
-                        : "w-2.5 bg-slate-300 hover:bg-slate-400"
-                        }`}
-                    />
-
-                  )
-                )}
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* Small numbered list */}
-
-          <div className="mt-4 grid grid-cols-5 gap-2">
-
-            {experiences.map(
-              (
-                experience,
-                index
-              ) => (
-
-                <button
-                  key={
-                    experience._id
-                  }
-                  type="button"
-                  onClick={() => {
-
-                    setCurrentIndex(
-                      index
-                    );
-
-                  }}
-                  className={`rounded-xl px-2 py-2 text-center text-xs font-bold transition ${index === currentIndex
-                    ? "bg-emerald-600 text-white shadow-md"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                >
-                  {index + 1}
-                </button>
-
-              )
-            )}
-
-          </div>
-
-        </div>
+       
 
       </div>
 

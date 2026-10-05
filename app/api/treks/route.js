@@ -6,6 +6,7 @@ import PageType from "@/models/PageType";
 import Region from "@/models/Region";
 
 import { getS3SignedUrl } from "@/lib/s3";
+import { resolvePageImages } from "@/lib/imageResolver";
 
 
 /*
@@ -167,7 +168,7 @@ export async function GET(request) {
 
         let cardImageUrl = trek.imageUrl || "";
 
-
+        
         /*
         ==============================================
         FIND FIRST UPLOADED IMAGE
@@ -177,10 +178,10 @@ export async function GET(request) {
         const uploadedImage =
           Array.isArray(trek.images)
             ? trek.images.find(
-                (image) =>
-                  image &&
-                  image.url
-              )
+              (image) =>
+                image &&
+                image.url
+            )
             : null;
 
 
@@ -265,6 +266,10 @@ export async function GET(request) {
       })
 
     );
+
+    // AWS resolve image
+    const treksWithImages =
+    await resolvePageImages(treks);
 
 
     /*

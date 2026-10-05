@@ -5,7 +5,7 @@ import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
 import Region from "@/models/Region";
-import { getS3SignedUrl } from "@/lib/s3";
+import { resolvePageImages } from "@/lib/imageResolver";
 
 
 /*
@@ -105,61 +105,8 @@ export default async function RegionTreksPage({ params }) {
     })
     .lean();
 
-
-    /*
-====================================================
-CREATE SIGNED URLS FOR S3 TREK IMAGES
-====================================================
-*/
-
-const treksWithSignedImages =
-await Promise.all(
-
-  treks.map(async (trek) => {
-
-    const primaryImage =
-      Array.isArray(trek.images) &&
-      trek.images.length > 0
-        ? trek.images[0]
-        : null;
-
-
-    /*
-    ----------------------------------------------
-    S3 IMAGE
-    ----------------------------------------------
-    */
-
-    if (
-      primaryImage?.storage === "s3" &&
-      primaryImage?.key
-    ) {
-
-      const signedUrl =
-        await getS3SignedUrl(
-          primaryImage.key,
-          3600
-        );
-
-      return {
-        ...trek,
-        imageUrl: signedUrl,
-      };
-
-    }
-
-
-    /*
-    ----------------------------------------------
-    CLOUDINARY / MANUAL URL
-    ----------------------------------------------
-    */
-
-    return trek;
-
-  })
-
-);
+  const treksWithSignedImages =
+    await resolvePageImages(treks);
 
   /*
   ==================================================
@@ -361,8 +308,8 @@ await Promise.all(
 
 
                     <Link
-                    href={`/treks/trek/${trek.slug}`}                   
-                    className="mt-6 inline-block rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-700"
+                      href={`/treks/trek/${trek.slug}`}
+                      className="mt-6 inline-block rounded-lg bg-gray-900 px-5 py-3 font-semibold text-white hover:bg-gray-700"
                     >
                       View Trek
                     </Link>

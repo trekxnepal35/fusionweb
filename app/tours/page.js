@@ -3,8 +3,9 @@ import Link from "next/link";
 import connectDB from "@/lib/mongodb";
 import Page from "@/models/Page";
 import PageType from "@/models/PageType";
+import { resolvePageImages } from "@/lib/imageResolver";
 import Region from "@/models/Region";
-import { getS3SignedUrl } from "@/lib/s3";
+
 
 
 /*
@@ -95,102 +96,16 @@ export default async function ToursPage() {
     .lean();
 
 
+
+
   /*
-  ====================================================
-  RESOLVE TOUR CARD IMAGES
-  ====================================================
-  */
+====================================================
+RESOLVE TOUR CARD IMAGES
+====================================================
+*/
 
-  const tours = await Promise.all(
-
-    tourDocuments.map(async (tour) => {
-
-      /*
-      ================================================
-      FIND UPLOADED IMAGE
-      ================================================
-      */
-
-      const uploadedImage = Array.isArray(tour.images)
-        ? tour.images.find(
-          (image) =>
-            image &&
-            (image.url || image.key)
-        )
-        : null;
-
-
-      /*
-      ================================================
-      DEFAULT TO LEGACY imageUrl
-      ================================================
-      */
-
-      let cardImageUrl = tour.imageUrl || "";
-
-
-      /*
-      ================================================
-      S3 IMAGE
-      ================================================
-      */
-
-      if (
-        uploadedImage?.storage === "s3" &&
-        uploadedImage?.key
-      ) {
-
-        try {
-
-          cardImageUrl = await getS3SignedUrl(
-            uploadedImage.key,
-            3600
-          );
-
-        } catch (error) {
-
-          console.error(
-            "Failed to create Tour S3 signed URL:",
-            error
-          );
-
-          cardImageUrl = "";
-
-        }
-
-      }
-
-
-      /*
-      ================================================
-      CLOUDINARY IMAGE
-      ================================================
-      */
-
-      else if (
-        uploadedImage?.storage === "cloudinary" &&
-        uploadedImage?.url
-      ) {
-
-        cardImageUrl = uploadedImage.url;
-
-      }
-
-
-      /*
-      ================================================
-      RETURN TOUR
-      ================================================
-      */
-
-      return {
-        ...tour,
-        cardImageUrl,
-      };
-
-    })
-
-  );
+  const tours =
+    await resolvePageImages(tourDocuments);
 
 
   /*
@@ -287,10 +202,10 @@ export default async function ToursPage() {
                       IMAGE
                   ================================== */}
 
-                  {tour.cardImageUrl ? (
+                  {tour.imageUrl ? (
 
                     <img
-                      src={tour.cardImageUrl}
+                      src={tour.imageUrl}
                       alt={tour.title}
                       className="h-56 w-full object-cover"
                     />

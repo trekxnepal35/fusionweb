@@ -11,13 +11,30 @@ function closeMobileMenu() {
 setMobileOpen(false);
 }
 
-return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+return ( <header
+   className="
+     fixed
+     top-0
+     left-0
+     right-0
+     z-50
+     bg-white/90
+     backdrop-blur-xl
+     border-b
+     border-gray-200/70
+   "
+ > <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
 
-  <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div className="flex items-center justify-between h-20">
+    {/* =================================================
+        MAIN NAVBAR
+    ================================================= */}
 
-      {/* LOGO */}
+    <div className="flex items-center h-20">
+
+      {/* =================================================
+          LOGO
+      ================================================= */}
 
       <Link
         href="/"
@@ -25,25 +42,45 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
         className="
           flex
           items-center
-          gap-2
-          text-2xl
-          font-bold
-          tracking-tight
-          whitespace-nowrap
+          shrink-0
+          mr-8
+          lg:mr-10
         "
       >
-        <span className="text-3xl">
-          <img src="/fusionLogo.png" alt="Office Logo" className="w-36" />
-        </span>
-       
+        <img
+          src="/fusionLogo.png"
+          alt="Office Logo"
+          className="
+            w-32
+            sm:w-36
+            h-auto
+          "
+        />
       </Link>
 
 
-      {/* DESKTOP MENU + SEARCH */}
+      {/* =================================================
+          DESKTOP NAVIGATION
+      ================================================= */}
 
-      <div className="hidden md:flex items-center w-[79%] justify-between">
+      <div
+        className="
+          hidden
+          md:flex
+          flex-1
+          items-center
+          justify-center
+        "
+      >
 
-        <ul className="flex items-center gap-6">
+        <ul
+          className="
+            flex
+            items-center
+            justify-center
+            gap-5
+          "
+        >
           <RecursiveMenu
             menus={menus}
             parentId={null}
@@ -51,11 +88,12 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
             mobile={false}
             onNavigate={closeMobileMenu}
           />
-
         </ul>
 
 
-        {/* SEARCH */}
+        {/* =================================================
+            SEARCH
+        ================================================= */}
 
         <Link
           href="/search"
@@ -63,26 +101,28 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
           aria-label="Search"
           title="Search"
           className="
+            ml-3
             flex
             items-center
             justify-center
             w-10
             h-10
+            shrink-0
             rounded-full
-            text-gray-700
+            text-gray-600
+            transition-all
+            duration-200
             hover:bg-gray-100
-            hover:text-gray-900
-            transition
+            hover:text-gray-950
           "
         >
-
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
-            className="w-6 h-6"
+            strokeWidth="1.8"
+            className="w-5 h-5"
             aria-hidden="true"
           >
             <circle
@@ -96,15 +136,24 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
               strokeLinecap="round"
             />
           </svg>
-
         </Link>
 
       </div>
 
 
-      {/* MOBILE BUTTONS */}
+      {/* =================================================
+          MOBILE BUTTONS
+      ================================================= */}
 
-      <div className="md:hidden flex items-center gap-2">
+      <div
+        className="
+          md:hidden
+          flex
+          items-center
+          gap-1
+          ml-auto
+        "
+      >
 
         {/* MOBILE SEARCH */}
 
@@ -119,20 +168,19 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
             justify-center
             w-11
             h-11
-            rounded-lg
+            rounded-full
             text-gray-700
             hover:bg-gray-100
             transition
           "
         >
-
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
-            className="w-6 h-6"
+            strokeWidth="1.8"
+            className="w-5.5 h-5.5"
             aria-hidden="true"
           >
             <circle
@@ -146,23 +194,25 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
               strokeLinecap="round"
             />
           </svg>
-
         </Link>
 
 
-        {/* MOBILE MENU BUTTON */}
+        {/* MOBILE MENU */}
 
         <button
           type="button"
-          onClick={() => setMobileOpen((value) => !value)}
+          onClick={() =>
+            setMobileOpen((value) => !value)
+          }
           className="
             flex
             items-center
             justify-center
             w-11
             h-11
-            rounded-lg
-            text-2xl
+            rounded-full
+            text-xl
+            text-gray-700
             hover:bg-gray-100
             transition
           "
@@ -177,12 +227,19 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
     </div>
 
 
-    {/* MOBILE MENU */}
+    {/* =================================================
+        MOBILE MENU
+    ================================================= */}
 
     {mobileOpen && (
-
-      <div className="md:hidden border-t border-gray-200">
-
+      <div
+        className="
+          md:hidden
+          border-t
+          border-gray-200/70
+          bg-white
+        "
+      >
         <ul className="py-3">
 
           <RecursiveMenu
@@ -194,13 +251,10 @@ return ( <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b bo
           />
 
         </ul>
-
       </div>
-
     )}
 
   </nav>
-
 </header>
 
 

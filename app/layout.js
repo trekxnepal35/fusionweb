@@ -49,17 +49,17 @@ export const metadata = {
 
   authors: [
     {
-      name: "Trek Nepal",
+      name: "Trek X Nepal",
     },
   ],
 
 
   creator:
-    "Trek Nepal",
+    "Trek X Nepal",
 
 
   publisher:
-    "Trek Nepal",
+    "Trek X Nepal",
 
 
   metadataBase:
@@ -81,10 +81,10 @@ export const metadata = {
     locale: "en_US",
 
     siteName:
-      "Trek Nepal",
+      " Fusion Expeditions Trek X Nepal",
 
     title:
-      "Trek Nepal | Himalayan Treks & Tours",
+      "Trek X Nepal | Fusion Expeditions | Himalayan Treks & Tours",
 
     description:
       "Explore Nepal's Himalayas through unforgettable treks, tours and authentic travel experiences.",
@@ -99,7 +99,7 @@ export const metadata = {
       "summary_large_image",
 
     title:
-      "Trek Nepal | Himalayan Treks & Tours",
+      "Trek X Nepal |Fusion Expeditions | Himalayan Treks & Tours",
 
     description:
       "Discover unforgettable adventures across Nepal's Himalayas.",

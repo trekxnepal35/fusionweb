@@ -1,7 +1,7 @@
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import JsonLd from "@/app/components/JsonLd";
-import { getS3SignedUrl } from "@/lib/s3";
+import { resolvePageImages } from "@/lib/imageResolver";
 
 
 
@@ -145,109 +145,8 @@ async function getBlogs(page = 1, limit = 6) {
     : [];
 
 
-/*
-==================================================
-RESOLVE BLOG CARD IMAGES
-==================================================
-*/
-
-const blogsWithImages =
-  await Promise.all(
-
-    blogs.map(
-      async (blog) => {
-
-        /*
-        ============================================
-        FIND FIRST UPLOADED IMAGE
-        ============================================
-        */
-
-        const uploadedImage =
-          Array.isArray(blog.images)
-            ? blog.images.find(
-                (image) =>
-                  image?.url ||
-                  image?.key
-              )
-            : null;
-
-
-        let cardImageUrl =
-          blog.imageUrl || "";
-
-
-        /*
-        ============================================
-        S3 IMAGE
-        ============================================
-        */
-
-        if (
-          uploadedImage?.storage === "s3" &&
-          uploadedImage?.key
-        ) {
-
-          try {
-
-            cardImageUrl =
-              await getS3SignedUrl(
-                uploadedImage.key,
-                3600
-              );
-
-          } catch (error) {
-
-            console.error(
-              "Failed to create Blog card S3 signed URL:",
-              error
-            );
-
-            /*
-            Fall back to old imageUrl
-            */
-
-            cardImageUrl =
-              blog.imageUrl || "";
-          }
-
-        }
-
-
-        /*
-        ============================================
-        CLOUDINARY IMAGE
-        ============================================
-        */
-
-        else if (
-          uploadedImage?.storage ===
-            "cloudinary" &&
-          uploadedImage?.url
-        ) {
-
-          cardImageUrl =
-            uploadedImage.url;
-
-        }
-
-
-        /*
-        ============================================
-        RETURN BLOG WITH RESOLVED IMAGE
-        ============================================
-        */
-
-        return {
-          ...blog,
-
-          cardImageUrl,
-        };
-
-      }
-    )
-
-  );
+    const blogsWithImages =
+    await resolvePageImages(blogs);
 
 
 return {
@@ -586,10 +485,10 @@ export default async function BlogPage({
                       <div className="relative h-56 overflow-hidden bg-gray-200">
 
 
-                      {blog.cardImageUrl ? (
+                      {blog.imageUrl ? (
 
                           <img
-                          src={blog.cardImageUrl}
+                          src={blog.imageUrl}
                             alt={
                               blog.title ||
                               "Blog image"

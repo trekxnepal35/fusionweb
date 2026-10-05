@@ -4,8 +4,11 @@ import BreadcrumbJsonLd from "@/app/components/BreadcrumbJsonLd";
 import FeedbackForm from "@/app/components/FeedbackForm";
 import FeedbackList from "@/app/components/FeedbackList";
 import JsonLd from "@/app/components/JsonLd";
-import { getS3SignedUrl } from "@/lib/s3";
 import YouTubeVideos from "@/app/components/YouTubeVideos";
+import ImageGallery from "@/app/components/ImageGallery";
+import { resolvePageImage, resolveImage, } from "@/lib/imageResolver";
+
+
 
 
 /*
@@ -64,96 +67,7 @@ async function getBlog(slug) {
   }
 }
 
-/*
-==================================================
-RESOLVE BLOG IMAGE
-==================================================
-*/
 
-async function resolveBlogImage(page) {
-
-  /*
-  ==================================================
-  USE UPLOADED IMAGE FROM images ARRAY FIRST
-  ==================================================
-  */
-
-  const uploadedImage =
-    Array.isArray(page?.images)
-      ? page.images.find(
-        (image) =>
-          image?.url ||
-          image?.key
-      )
-      : null;
-
-
-  /*
-  ==================================================
-  NO UPLOADED IMAGE
-  FALL BACK TO OLD imageUrl
-  ==================================================
-  */
-
-  if (!uploadedImage) {
-    return page?.imageUrl || "";
-  }
-
-
-  /*
-  ==================================================
-  S3 IMAGE
-  ==================================================
-  */
-
-  if (
-    uploadedImage.storage === "s3" &&
-    uploadedImage.key
-  ) {
-
-    try {
-
-      return await getS3SignedUrl(
-        uploadedImage.key,
-        3600
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to create Blog S3 signed URL:",
-        error
-      );
-
-      /*
-      Fall back to imageUrl if
-      signed URL generation fails.
-      */
-
-      return page?.imageUrl || "";
-    }
-  }
-
-
-  /*
-  ==================================================
-  CLOUDINARY OR OTHER UPLOADED IMAGE
-  ==================================================
-  */
-
-  if (uploadedImage.url) {
-    return uploadedImage.url;
-  }
-
-
-  /*
-  ==================================================
-  FINAL FALLBACK
-  ==================================================
-  */
-
-  return page?.imageUrl || "";
-}
 
 
 /*
@@ -243,12 +157,12 @@ export async function generateMetadata({ params }) {
     seo.ogDescription?.trim() ||
     description;
 
-  const uploadedBlogImage =
-    await resolveBlogImage(blog);
+  const blogImageUrl =
+    await resolvePageImage(blog);
 
   const ogImage =
     seo.ogImage?.trim() ||
-    uploadedBlogImage ||
+    blogImageUrl ||
     "";
 
   /*
@@ -499,7 +413,7 @@ export default async function BlogDetailPage({
           ...relatedBlog,
 
           resolvedImageUrl:
-            await resolveBlogImage(
+            await resolvePageImage(
               relatedBlog
             ),
         })
@@ -512,7 +426,42 @@ export default async function BlogDetailPage({
     "http://localhost:3000";
 
   const featuredImageUrl =
-    await resolveBlogImage(blog);
+    await resolvePageImage(blog);
+  /*
+================================================
+BLOG GALLERY IMAGES
+================================================
+*/
+
+  /*
+ ================================================
+ BLOG GALLERY IMAGES
+ ================================================
+ */
+
+  const galleryImages =
+    Array.isArray(blog.images)
+      ? (
+        await Promise.all(
+          blog.images.map(async (image) => {
+            const url =
+              await resolveImage(image);
+
+            return {
+              url,
+              alt:
+                image.alt ||
+                blog.title ||
+                "Blog image",
+            };
+          })
+        )
+      ).filter(
+        (image) =>
+          image.url &&
+          image.url !== featuredImageUrl
+      )
+      : [];
 
   /*
   ================================================
@@ -521,7 +470,7 @@ export default async function BlogDetailPage({
   */
 
   const articleImage =
-    await resolveBlogImage(blog);
+    featuredImageUrl;
 
   const articleJsonLd = {
 
@@ -752,6 +701,15 @@ export default async function BlogDetailPage({
               />
 
             </div>
+            {/* =====================================
+              IMAGE GALLERY
+          ===================================== */}
+
+            <ImageGallery
+              images={galleryImages}
+              fallbackImage={featuredImageUrl}
+              fallbackAlt={blog.title}
+            />
 
 
 
@@ -760,6 +718,17 @@ export default async function BlogDetailPage({
           ===================================== */}
 
 
+            {Array.isArray(blog.youtubeVideos) &&
+              blog.youtubeVideos.length > 0 && (
+                <section className="mx-auto mt-14 max-w-5xl">
+
+                  <YouTubeVideos
+                    videos={blog.youtubeVideos}
+                  />
+
+
+                </section>
+              )}
 
             {/* ======================================
             FEEDBACK / COMMENTS

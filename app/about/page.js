@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getS3SignedUrl } from "@/lib/s3";
+import { resolvePageImage } from "@/lib/imageResolver";
+
 
 export const metadata = {
   title: "About Us | Trek Nepal",
@@ -34,71 +35,16 @@ export default async function AboutPage() {
     notFound();
   }
 
-
   /*
-  ====================================================
-  RESOLVE ABOUT PAGE IMAGE
-  ====================================================
-  */
+====================================================
+RESOLVE ABOUT PAGE IMAGE
+====================================================
+*/
 
-  const uploadedImage = Array.isArray(page.images)
-    ? page.images.find(
-      (image) =>
-        image &&
-        (image.url || image.key)
-    )
-    : null;
+  const aboutImageUrl =
+    await resolvePageImage(page);
 
 
-  let aboutImageUrl = page.imageUrl || "";
-
-
-  /*
-  ====================================================
-  S3 IMAGE
-  ====================================================
-  */
-
-  if (
-    uploadedImage?.storage === "s3" &&
-    uploadedImage?.key
-  ) {
-
-    try {
-
-      aboutImageUrl = await getS3SignedUrl(
-        uploadedImage.key,
-        3600
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to create About page S3 signed URL:",
-        error
-      );
-
-      aboutImageUrl = "";
-
-    }
-
-  }
-
-
-  /*
-  ====================================================
-  CLOUDINARY IMAGE
-  ====================================================
-  */
-
-  else if (
-    uploadedImage?.storage === "cloudinary" &&
-    uploadedImage?.url
-  ) {
-
-    aboutImageUrl = uploadedImage.url;
-
-  }
   return (<main className="bg-white">
 
 
@@ -152,7 +98,7 @@ export default async function AboutPage() {
               {page.content}
             </p>
 
-          
+
           </div>
 
         </div>
@@ -162,144 +108,136 @@ export default async function AboutPage() {
 
         <div className="overflow-hidden rounded-3xl bg-gray-100 shadow-lg">
 
-          <div className="flex aspect-[4/3] items-center justify-center">
+          <div className="overflow-hidden rounded-3xl bg-gray-100 shadow-lg">
 
-            <div className="text-center">
+            <div className="aspect-[4/3]">
 
-              
-
-              <p className="mt-2 text-sm text-gray-400">
-
-                {aboutImageUrl ? (
-
-                  <img
-                    src={aboutImageUrl}
-                    alt="About Photo"
-                    className="h-[500px] w-[500px] object-cover"
-                  />
-
-                ) : (
-
-                  <span>
+              {aboutImageUrl ? (
+                <img
+                  src={aboutImageUrl}
+                  alt="About Photo"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <span className="text-sm text-gray-400">
                     Nepal Himalayas
                   </span>
-
-                )}
-
-              </p>
+                </div>
+              )}
 
             </div>
 
           </div>
 
-           {/* ========================================
+          {/* ========================================
       WHAT WE OFFER
   ======================================== */}
 
-    <section className="bg-gray-50">
+          <section className="bg-gray-50">
 
-<div className="mx-auto max-w-7xl px-5 py-16 sm:px-10 lg:px-16 lg:py-24">
+            <div className="mx-auto max-w-7xl px-5 py-16 sm:px-10 lg:px-16 lg:py-24">
 
-  <div className="mx-auto  text-center">
+              <div className="mx-auto  text-center">
 
-    <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
-      What We Offer
-    </p>
+                <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+                  What We Offer
+                </p>
 
-    <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-      Explore Nepal Your Way
-    </h2>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                  Explore Nepal Your Way
+                </h2>
 
-    <p className="mt-5 text-lg leading-8 text-gray-600">
-      {page.highlight}
-    </p>
+                <p className="mt-5 text-lg leading-8 text-gray-600">
+                  {page.highlight}
+                </p>
 
-  </div>
-
-
-  <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              </div>
 
 
-    {/* TREKS */}
-
-    <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
-
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
-        🏔️
-      </div>
-
-      <h3 className="mt-5 text-xl font-bold text-gray-900">
-        Trekking
-      </h3>
-
-      <p className="mt-3 text-sm leading-6 text-gray-600">
-        {page.inclusions[0]}
-      </p>
-
-    </div>
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
 
 
-    {/* TOURS */}
+                {/* TREKS */}
 
-    <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
+                <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
 
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
-        🛕
-      </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                    🏔️
+                  </div>
 
-      <h3 className="mt-5 text-xl font-bold text-gray-900">
-        Tours
-      </h3>
+                  <h3 className="mt-5 text-xl font-bold text-gray-900">
+                    Trekking
+                  </h3>
 
-      <p className="mt-3 text-sm leading-6 text-gray-600">
-        {page.inclusions[1]}
-      </p>
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    {page.inclusions?.[0] || ""}
+                  </p>
 
-    </div>
-
-
-    {/* CLIMBING */}
-
-    <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
-
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
-        🧗
-      </div>
-
-      <h3 className="mt-5 text-xl font-bold text-gray-900">
-        Climbing
-      </h3>
-
-      <p className="mt-3 text-sm leading-6 text-gray-600">
-        {page.inclusions[2]}
-      </p>
-
-    </div>
+                </div>
 
 
-    {/* ADVENTURE */}
+                {/* TOURS */}
 
-    <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
+                <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
 
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
-        🪂
-      </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                    🛕
+                  </div>
 
-      <h3 className="mt-5 text-xl font-bold text-gray-900">
-        Adventure
-      </h3>
+                  <h3 className="mt-5 text-xl font-bold text-gray-900">
+                    Tours
+                  </h3>
 
-      <p className="mt-3 text-sm leading-6 text-gray-600">
-        {page.inclusions[3]}
-      </p>
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    {page.inclusions[1] || ""}
+                  </p>
 
-    </div>
+                </div>
 
-  </div>
 
-</div>
+                {/* CLIMBING */}
 
-</section>
+                <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
+
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                    🧗
+                  </div>
+
+                  <h3 className="mt-5 text-xl font-bold text-gray-900">
+                    Climbing
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    {page.inclusions[2] || ""}
+                  </p>
+
+                </div>
+
+
+                {/* ADVENTURE */}
+
+                <div className="rounded-2xl bg-white p-7 shadow-sm ring-1 ring-gray-200">
+
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                    🪂
+                  </div>
+
+                  <h3 className="mt-5 text-xl font-bold text-gray-900">
+                    Adventure
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    {page.inclusions[3] || ""}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </section>
 
         </div>
 
@@ -308,7 +246,7 @@ export default async function AboutPage() {
     </section>
 
 
-   
+
 
 
     {/* ========================================
@@ -345,7 +283,7 @@ export default async function AboutPage() {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              {page.exclusions[0]}
+              {page.exclusions[0] || ""}
             </p>
 
           </div>
@@ -358,7 +296,7 @@ export default async function AboutPage() {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              {page.exclusions[1]}
+              {page.exclusions[1] || ""}
             </p>
 
           </div>
@@ -371,7 +309,7 @@ export default async function AboutPage() {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              {page.exclusions[2]}
+              {page.exclusions[2] || ""}
             </p>
 
           </div>
@@ -384,7 +322,7 @@ export default async function AboutPage() {
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-gray-600">
-              {page.exclusions[3]}
+              {page.exclusions[3] || ""}
             </p>
 
           </div>
@@ -404,7 +342,7 @@ export default async function AboutPage() {
 
       <div className="mx-auto max-w-full px-6 py-16 text-center sm:px-8 lg:px-12 lg:py-20">
 
-        <h2 className="text-7xl font-bold tracking-tight text-white sm:text-4xl">
+      <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
           Ready to Explore Nepal?
         </h2>
 

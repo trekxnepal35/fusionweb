@@ -704,9 +704,157 @@ console.log("Form Data",formData)
         )}
 
         <div className="grid gap-8 lg:grid-cols-3">
+          {/* =======================================
+             Left / SUMMARY
+          ======================================= */}
+
+<aside className="lg:col-span-1">
+            <div className="sticky top-6 overflow-hidden rounded-2xl border bg-white shadow-sm">
+
+              {/* IMAGE */}
+
+              {experience.imageUrl && (
+                <img
+                  src={experience.imageUrl}
+                  alt={experience.title}
+                  className="h-56 w-full object-cover"
+                />
+              )}
+
+              <div className="p-5 md:p-6">
+
+                {/* TYPE */}
+
+                <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
+                  {experienceTypeName}
+                </p>
+
+                {/* TITLE */}
+
+                <h2 className="mt-1 text-2xl font-bold text-gray-900">
+                  {experience.title}
+                </h2>
+
+             
+
+                {/* PRICE */}
+
+                <div className="mt-6 border-t pt-5">
+                  <p className="text-sm text-gray-500">
+                    Price per person
+                  </p>
+
+                  {pricePerPerson > 0 ? (
+                    <p className="mt-1 text-3xl font-bold text-gray-900">
+                      {currency}{" "}
+                      {pricePerPerson}
+                    </p>
+                  ) : (
+                    <p className="mt-1 font-semibold text-red-600">
+                      Price unavailable
+                    </p>
+                  )}
+                </div>
+
+                {/* PAX TIER */}
+
+                {pricingType === "pax_based" && (
+                  <div className="mt-5 rounded-xl bg-gray-50 p-4">
+                    <h3 className="mb-3 font-semibold text-gray-900">
+                      Group Pricing
+                    </h3>
+
+                    <div className="space-y-2">
+                      {paxPrices.map(
+                        (tier, index) => {
+                          const min = Number(
+                            tier.minPax
+                          );
+
+                          const max =
+                            tier.maxPax === null ||
+                              tier.maxPax === "" ||
+                              typeof tier.maxPax ===
+                              "undefined"
+                              ? null
+                              : Number(
+                                tier.maxPax
+                              );
+
+                          const label =
+                            max === null
+                              ? `${min}+ people`
+                              : min === max
+                                ? `${min} people`
+                                : `${min}-${max} people`;
+
+                          const active =
+                            selectedTier === tier;
+
+                          return (
+                            <div
+                              key={
+                                tier._id ||
+                                index
+                              }
+                              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm ${active
+                                  ? "bg-black text-white"
+                                  : "bg-white text-gray-700"
+                                }`}
+                            >
+                              <span>
+                                {label}
+                              </span>
+
+                              <span className="font-semibold">
+                                {currency}{" "}
+                                {tier.pricePerPax}
+                              </span>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* TOTAL */}
+
+                <div className="mt-6 border-t pt-5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-gray-600">
+                      Estimated Total
+                    </span>
+
+                    <span className="text-2xl font-bold text-gray-900">
+                      {currency}{" "}
+                      {estimatedTotal}
+                    </span>
+                  </div>
+                </div>
+
+                {/* NOTE */}
+
+                <p className="mt-5 text-xs leading-5 text-gray-500">
+                  Final pricing will be confirmed
+                  by our team. The displayed total
+                  is calculated from the current
+                  experience pricing.
+                </p>
+
+                   {/* DESCRIPTION */}
+                   
+                   {/* {experience.description && (
+                  <p className="mt-3 line-clamp-4 text-sm leading-6 text-gray-600">
+                    {experience.description}
+                  </p>
+                )}  */}
+              </div>
+            </div>
+          </aside>
 
           {/* =======================================
-              LEFT / FORM
+              Right/ FORM
           ======================================= */}
 
           <div className="lg:col-span-2">
@@ -951,152 +1099,7 @@ console.log("Form Data",formData)
             </div>
           </div>
 
-          {/* =======================================
-              RIGHT / SUMMARY
-          ======================================= */}
-
-          <aside className="lg:col-span-1">
-            <div className="sticky top-6 overflow-hidden rounded-2xl border bg-white shadow-sm">
-
-              {/* IMAGE */}
-
-              {experience.imageUrl && (
-                <img
-                  src={experience.imageUrl}
-                  alt={experience.title}
-                  className="h-56 w-full object-cover"
-                />
-              )}
-
-              <div className="p-5 md:p-6">
-
-                {/* TYPE */}
-
-                <p className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-                  {experienceTypeName}
-                </p>
-
-                {/* TITLE */}
-
-                <h2 className="mt-1 text-2xl font-bold text-gray-900">
-                  {experience.title}
-                </h2>
-
-                {/* DESCRIPTION */}
-
-                {experience.description && (
-                  <p className="mt-3 line-clamp-4 text-sm leading-6 text-gray-600">
-                    {experience.description}
-                  </p>
-                )}
-
-                {/* PRICE */}
-
-                <div className="mt-6 border-t pt-5">
-                  <p className="text-sm text-gray-500">
-                    Price per person
-                  </p>
-
-                  {pricePerPerson > 0 ? (
-                    <p className="mt-1 text-3xl font-bold text-gray-900">
-                      {currency}{" "}
-                      {pricePerPerson}
-                    </p>
-                  ) : (
-                    <p className="mt-1 font-semibold text-red-600">
-                      Price unavailable
-                    </p>
-                  )}
-                </div>
-
-                {/* PAX TIER */}
-
-                {pricingType === "pax_based" && (
-                  <div className="mt-5 rounded-xl bg-gray-50 p-4">
-                    <h3 className="mb-3 font-semibold text-gray-900">
-                      Group Pricing
-                    </h3>
-
-                    <div className="space-y-2">
-                      {paxPrices.map(
-                        (tier, index) => {
-                          const min = Number(
-                            tier.minPax
-                          );
-
-                          const max =
-                            tier.maxPax === null ||
-                              tier.maxPax === "" ||
-                              typeof tier.maxPax ===
-                              "undefined"
-                              ? null
-                              : Number(
-                                tier.maxPax
-                              );
-
-                          const label =
-                            max === null
-                              ? `${min}+ people`
-                              : min === max
-                                ? `${min} people`
-                                : `${min}-${max} people`;
-
-                          const active =
-                            selectedTier === tier;
-
-                          return (
-                            <div
-                              key={
-                                tier._id ||
-                                index
-                              }
-                              className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm ${active
-                                  ? "bg-black text-white"
-                                  : "bg-white text-gray-700"
-                                }`}
-                            >
-                              <span>
-                                {label}
-                              </span>
-
-                              <span className="font-semibold">
-                                {currency}{" "}
-                                {tier.pricePerPax}
-                              </span>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* TOTAL */}
-
-                <div className="mt-6 border-t pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-gray-600">
-                      Estimated Total
-                    </span>
-
-                    <span className="text-2xl font-bold text-gray-900">
-                      {currency}{" "}
-                      {estimatedTotal}
-                    </span>
-                  </div>
-                </div>
-
-                {/* NOTE */}
-
-                <p className="mt-5 text-xs leading-5 text-gray-500">
-                  Final pricing will be confirmed
-                  by our team. The displayed total
-                  is calculated from the current
-                  experience pricing.
-                </p>
-              </div>
-            </div>
-          </aside>
+          
         </div>
       </div>
 

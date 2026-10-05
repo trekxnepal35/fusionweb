@@ -5,6 +5,7 @@ import Page from "@/models/Page";
 import PageType from "@/models/PageType";
 
 import { getS3SignedUrl } from "@/lib/s3";
+import { resolvePageImages } from "@/lib/imageResolver";
 
 
 /*
@@ -122,10 +123,10 @@ export async function GET(request) {
         const uploadedImage =
           Array.isArray(tour.images)
             ? tour.images.find(
-                (image) =>
-                  image &&
-                  image.url
-              )
+              (image) =>
+                image &&
+                image.url
+            )
             : null;
 
 
@@ -211,6 +212,10 @@ export async function GET(request) {
       })
 
     );
+
+    // Resolve AWS image
+    const toursWithImages =
+      await resolvePageImages(tours);
 
 
     /*
