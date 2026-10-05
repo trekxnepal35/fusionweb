@@ -259,7 +259,7 @@ return ( <li className="group relative flex items-center">
         className="
           relative
 
-          w-[min(980px,calc(100vw-24px))]
+          w-[min(850px,calc(100vw-32px))]
 
           min-h-[320px]
 
