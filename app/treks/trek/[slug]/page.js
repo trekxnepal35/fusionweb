@@ -672,110 +672,7 @@ GALLERY IMAGES
                 )}
 
 
-                {/* ================================
-                  INCLUSIONS
-              ================================= */}
-
-                {trek.inclusions?.length > 0 && (
-
-                  <section id="included" className="mt-12">
-
-
-                    <SectionCollapse title="What`s Included">
-                      <hr />
-                      <ul className="space-y-3 transition-all duration-300">
-
-                        {trek.inclusions.map(
-                          (item, index) => (
-
-                            <li
-                              key={index}
-                              className="flex gap-3 text-gray-700"
-                            >
-
-                              <span className="text-justify font-bold text-green-600">
-                                ✓
-                              </span>
-
-                              <span>{item}</span>
-
-                            </li>
-
-                          )
-                        )}
-
-                      </ul>
-                    </SectionCollapse>
-
-                  </section>
-
-                )}
-
-
-                {/* ================================
-                  EXCLUSIONS
-              ================================= */}
-
-                {trek.exclusions?.length > 0 && (
-
-                  <section id="excluded" className="mt-12">
-
-                    <SectionCollapse title="What`s Not Included">
-                      <hr />
-
-                      <ul className="space-y-3 transition-all duration-300">
-
-                        {trek.exclusions.map(
-                          (item, index) => (
-
-                            <li
-                              key={index}
-                              className="flex gap-3 text-gray-700"
-                            >
-
-                              <span className="text-justify font-bold text-red-600">
-                                ×
-                              </span>
-
-                              <span>{item}</span>
-
-                            </li>
-
-                          )
-                        )}
-
-                      </ul>
-                    </SectionCollapse>
-
-                  </section>
-
-                )}
-
-
-                {/* ================================
-                  IMPORTANT INFORMATION
-              ================================= */}
-
-                {trek.importantInformation && (
-
-                  <section id="important-information" className="mt-12 rounded-xl bg-gray-50 p-6">
-
-
-                    <SectionCollapse title="Important Information">
-                      <hr />
-
-
-
-                      <p className="text-justify whitespace-pre-line leading-7 text-gray-700 transition-all duration-300">
-
-                        {trek.importantInformation}
-
-                      </p>
-                    </SectionCollapse>
-
-                  </section>
-
-                )}
+          
 
               </div>
 
@@ -909,6 +806,111 @@ GALLERY IMAGES
               </aside>
 
             </div>
+
+                  {/* ================================
+                  INCLUSIONS
+              ================================= */}
+
+{trek.inclusions?.length > 0 && (
+
+<section id="included" className="mt-12">
+
+
+  <SectionCollapse title="What`s Included">
+    <hr />
+    <ul className="space-y-3 transition-all duration-300">
+
+      {trek.inclusions.map(
+        (item, index) => (
+
+          <li
+            key={index}
+            className="flex gap-3 text-gray-700"
+          >
+
+            <span className="text-justify font-bold text-green-600">
+              ✓
+            </span>
+
+            <span>{item}</span>
+
+          </li>
+
+        )
+      )}
+
+    </ul>
+  </SectionCollapse>
+
+</section>
+
+)}
+
+
+{/* ================================
+EXCLUSIONS
+================================= */}
+
+{trek.exclusions?.length > 0 && (
+
+<section id="excluded" className="mt-12">
+
+  <SectionCollapse title="What`s Not Included">
+    <hr />
+
+    <ul className="space-y-3 transition-all duration-300">
+
+      {trek.exclusions.map(
+        (item, index) => (
+
+          <li
+            key={index}
+            className="flex gap-3 text-gray-700"
+          >
+
+            <span className="text-justify font-bold text-red-600">
+              ×
+            </span>
+
+            <span>{item}</span>
+
+          </li>
+
+        )
+      )}
+
+    </ul>
+  </SectionCollapse>
+
+</section>
+
+)}
+
+
+{/* ================================
+IMPORTANT INFORMATION
+================================= */}
+
+{trek.importantInformation && (
+
+<section id="important-information" className="mt-12 rounded-xl bg-gray-50 p-6">
+
+
+  <SectionCollapse title="Important Information">
+    <hr />
+
+
+
+    <p className="text-justify whitespace-pre-line leading-7 text-gray-700 transition-all duration-300">
+
+      {trek.importantInformation}
+
+    </p>
+  </SectionCollapse>
+
+</section>
+
+)}
 
             {/* =====================================
           FREQUENTLY ASKED QUESTIONS

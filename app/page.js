@@ -1054,7 +1054,7 @@ FETCH FAQS
   </h3>
 
 
-  <div className="mt-10 flex  justify-between ">
+  <div className="mt-10 flex flex-col justify-around gap-4 sm:flex-row">
   <Link
         href="/"       
         className="
