@@ -38,6 +38,10 @@ ul {
   .menu-item:hover > .submenu {
     display: block;
   }
+  p{
+    padding: 0 1px;
+  text-justify: auto;
+  }
 
 }
 

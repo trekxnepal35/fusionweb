@@ -583,9 +583,9 @@ GALLERY IMAGES
                             className="rounded-xl border p-6  shadow-sm"
                           >
 
-                            <div className="flex gap-5 ">
+                            <div className="flex gap-0.5 ">
 
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
+                              <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
 
                                 Day:{day.day}
 

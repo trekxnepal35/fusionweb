@@ -602,9 +602,9 @@ GALLERY IMAGES
                               className="rounded-xl border bg-white p-6 shadow-sm"
                             >
 
-                              <div className="flex gap-5">
+                              <div className="flex gap-0.5">
 
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
+                                <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
 
                                   Day:{day.day}
 
@@ -613,8 +613,8 @@ GALLERY IMAGES
 
                                 <div className="flex-1">
 
-
-                                  <SectionCollapse title={day.title}>
+                               
+                                  <SectionCollapse  title={day.title}>
                                     {day.description && (
 
                                       <p className="text-justify mt-3 whitespace-pre-line leading-7 text-gray-600">
