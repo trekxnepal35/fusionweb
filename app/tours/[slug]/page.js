@@ -583,13 +583,15 @@ GALLERY IMAGES
                             className="rounded-xl border p-6  shadow-sm"
                           >
 
-                            <div className="flex gap-0.5 ">
+                            {/* <div className="flex gap-0.5 "/> */}
 
-                              <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
+                              {/* <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-bold text-white">
 
                                 Day:{day.day}
 
-                              </div>
+                              </div> */}
+                              <p className="mt-3 text-justify font-bold text-[23px]  whitespace-pre-line leading-7 text-gray-900" >
+                                Day:{day.day} </p>
 
                               <SectionCollapse title={day.title}>
                                 <div >
@@ -639,7 +641,7 @@ GALLERY IMAGES
                                 </div>
                               </SectionCollapse>
 
-                            </div>
+                          
 
                           </div>
 

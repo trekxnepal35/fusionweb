@@ -604,16 +604,17 @@ GALLERY IMAGES
 
                               <div className="flex gap-0.5">
 
-                                <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
+                                {/* <div className=" text-[12px] flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
 
                                   Day:{day.day}
 
-                                </div>
+                                </div> */}
 
 
                                 <div className="flex-1">
-
-                               
+                                <p className="text-justify font-bold text-[23px]  mt-3 whitespace-pre-line leading-7 text-gray-900" >
+                                Day:{day.day} </p>
+                                
                                   <SectionCollapse  title={day.title}>
                                     {day.description && (
 

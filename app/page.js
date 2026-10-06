@@ -1623,7 +1623,7 @@ function PopularExperiences({
         <div>
 
           <span className="text-sm font-bold uppercase tracking-[0.25em] text-emerald-600">
-            Popular Adventures
+            Popular Adventures 
           </span>
 
 

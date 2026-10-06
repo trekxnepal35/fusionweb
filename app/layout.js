@@ -273,7 +273,7 @@ export default async function RootLayout({
 
                   <li>
                     <Link href="/faq" className="transition hover:text-white">
-                      Faqs
+                      FAQs
                     </Link>
                   </li>
 
